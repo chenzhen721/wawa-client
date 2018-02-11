@@ -8,6 +8,9 @@ import com.chen.serialport.component.ReceiveDataObserver;
 import gnu.io.SerialPort;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import static com.chen.common.utils.StringUtils.bytes2HexString;
 import static com.chen.common.utils.StringUtils.hexStringToBytes;
@@ -22,12 +25,14 @@ public class ComPort extends ReceiveDataObserver {
     protected SerialPort mSerialPort;
     private ReadThread mReadThread;
     private EventObserver<String> receiveDataObserver;
+    private Executor executor = Executors.newSingleThreadExecutor();
+    private FutureTask<String> futureTask;
 
-    private class ReadThread extends Thread {
+    private class ReadThread implements Runnable {
         @Override
         public void run() {
-            super.run();
-            while(!isInterrupted()) {
+            //super.run();
+            while(true) {
                 try {
                     byte[] buffer = SerialTool.readFromPort(mSerialPort);
                     if (buffer != null && buffer.length > 0) {
@@ -36,7 +41,6 @@ public class ComPort extends ReceiveDataObserver {
                     Thread.sleep(20);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return;
                 }
             }
         }
@@ -70,7 +74,8 @@ public class ComPort extends ReceiveDataObserver {
 
 			/* Create a receiving thread */
             mReadThread = new ReadThread();
-            mReadThread.start();
+            futureTask = new FutureTask<String>(mReadThread, "");
+            executor.execute(futureTask);
             return true;
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -132,12 +137,17 @@ public class ComPort extends ReceiveDataObserver {
     }
 
     public void destroy() {
-        if (mReadThread != null)
-            mReadThread.interrupt();
+        try {
+            if (futureTask != null) {
+                futureTask.cancel(true);
+            }
 
-        if (mSerialPort != null) {
-            SerialTool.closePort(mSerialPort);
-            mSerialPort = null;
+            if (mSerialPort != null) {
+                SerialTool.closePort(mSerialPort);
+                mSerialPort = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
