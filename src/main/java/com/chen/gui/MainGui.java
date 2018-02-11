@@ -267,7 +267,9 @@ public class MainGui {
             {
                 lcombobox.onClose();
                 rcombobox.onClose();
-                clientServer.onClose();
+                if (clientServer != null) {
+                    clientServer.onClose();
+                }
                 try {
                     Thread.sleep(30);
                 } catch (InterruptedException e1) {
