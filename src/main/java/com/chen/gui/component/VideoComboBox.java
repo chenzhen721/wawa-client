@@ -64,7 +64,7 @@ public class VideoComboBox extends JComboBox<String> {
             JLabel label = camera.getLabel();
             int x = this.getX();
             int y = this.getY();
-            label.setBounds(x, y, 400, 600);
+            label.setBounds(x, y, 400, 400);
             map.put(deviceIndex, camera);
         }
         MainGui.jpanel.add(camera.getLabel());

@@ -23,17 +23,17 @@ public class ComPort extends ReceiveDataObserver {
     private String portName;
     private int baudrate;
     protected SerialPort mSerialPort;
-    private ReadThread mReadThread;
     private EventObserver<String> receiveDataObserver;
     private Executor executor = Executors.newSingleThreadExecutor();
-    private FutureTask<String> futureTask;
 
     private class ReadThread implements Runnable {
         @Override
         public void run() {
-            //super.run();
             while(true) {
                 try {
+                    if (mSerialPort == null) {
+                        break;
+                    }
                     byte[] buffer = SerialTool.readFromPort(mSerialPort);
                     if (buffer != null && buffer.length > 0) {
                         onDataReceived(buffer);
@@ -73,8 +73,8 @@ public class ComPort extends ReceiveDataObserver {
             }
 
 			/* Create a receiving thread */
-            mReadThread = new ReadThread();
-            futureTask = new FutureTask<String>(mReadThread, "");
+            ReadThread mReadThread = new ReadThread();
+            FutureTask<String> futureTask = new FutureTask<>(mReadThread, "");
             executor.execute(futureTask);
             return true;
         } catch (SecurityException e) {
@@ -138,9 +138,10 @@ public class ComPort extends ReceiveDataObserver {
 
     public void destroy() {
         try {
-            if (futureTask != null) {
+            /*if (futureTask != null) {
+                mReadThread.setRunningFlag(false);
                 futureTask.cancel(true);
-            }
+            }*/
 
             if (mSerialPort != null) {
                 SerialTool.closePort(mSerialPort);

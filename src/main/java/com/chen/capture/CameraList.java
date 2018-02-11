@@ -13,12 +13,18 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 
 public class CameraList {
 
+    private final ExecutorService exec = Executors.newFixedThreadPool(1);
     private int flag = 0;//类静态变量，用于控制按下按钮后 停止摄像头的读取
-    private Thread thread;
+    private FutureTask<String> future;
     private VideoCapture camera;
     private JLabel label = new JLabel("");
     private int deviceIndex;
@@ -29,21 +35,19 @@ public class CameraList {
     }
 
     public void playVideoOnLabel() {
-        thread = new Thread(() -> {
+        Callable<String> callable = () -> {
             String msg="fps:";
             DecimalFormat df = new DecimalFormat(".##");//数字格式化
             //我们的操作
 
             if(!camera.isOpened()){//isOpened函数用来判断摄像头调用是否成功
                 System.out.println("Camera Error");//如果摄像头调用失败，输出错误信息
-            }
-            else{
+            } else {
                 Mat frame = new Mat();//创建一个输出帧
                 double start = System.currentTimeMillis();
                 double end;
-                //使用java的JFrame显示图像
-                while (camera.isOpened() && flag == 0) {
-                    camera.read(frame);//read方法读取摄像头的当前帧
+                //read方法读取摄像头的当前帧
+                while (camera.isOpened() && camera.read(frame)) {
 
                     float scale = resizeRate(frame.width(), frame.height(), label.getWidth(), label.getHeight());
                     Imgproc.resize(frame, frame, new Size(frame.width()*scale,frame.height()*scale));
@@ -79,10 +83,19 @@ public class CameraList {
                         e.printStackTrace();
                     }
                 }
-                System.out.println("closing camera.");
-            }});
-        thread.start();
-
+                return "closing camera.";
+            }
+            return "open camera failed.";
+        };
+        future = new FutureTask<>(callable);
+        exec.submit(future);
+        if (future.isDone()) {
+            try {
+                System.out.println(future.get()); //预警
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static float resizeRate(int originWidth, int originHeight, int width, int height) {
@@ -173,6 +186,11 @@ public class CameraList {
     public void onClose() {
         if (this.camera != null) {
             this.camera.release();
+            try {
+                System.out.println(future.get()); //todo 关闭结果
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+            }
         }
         if (this.label != null) {
             this.label.setEnabled(false);
