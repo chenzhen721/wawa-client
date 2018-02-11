@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,11 +34,6 @@ public class C2Command implements Command {
     @Override
     public ComResponse execute(ComRequest comRequest) {
         ComResponse comResponse = this.receiver.action(comRequest, 500);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         if (comResponse == null) {
             comResponse = new ComResponse();
         }
@@ -56,20 +52,19 @@ public class C2Command implements Command {
                 return comResponse;
             }
             //如果已经下抓，轮询接口查询抓取结果，
-            final AtomicInteger flag = new AtomicInteger(1);
             Callable<ComResponse> callable = () -> {
                 //调用完成后返回
                 //各种校验后发送命令，然后等待结果返回
-                while (flag.get() == 1) {
+                while (true) {
                     ComResponse response = this.receiver.action(C0Command.comRequest, 500);
                     if (response.getArg1() == (byte)0x0) {
                         return response;
                     }
                     Thread.sleep(500);
                 }
-                return null;
             };
-            Future<ComResponse> future = exec.submit(callable);
+            FutureTask<ComResponse> future = new FutureTask<>(callable);
+            exec.submit(future);
             try {
                 comResponse = future.get(20000, TimeUnit.MILLISECONDS);
                 if (comResponse == null) {
@@ -81,10 +76,11 @@ public class C2Command implements Command {
                 } else {
                     comResponse.setResult(false);
                 }
+                System.out.println("正常收到结果：" + comResponse.getResult());
                 return comResponse;
             } catch (InterruptedException|ExecutionException |TimeoutException e) {
                 e.printStackTrace();
-                flag.set(0); //
+                future.cancel(true);
             }
             //超时
             comResponse.setCode(Result.timeoutWhileOfferingRequest);

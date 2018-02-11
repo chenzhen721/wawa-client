@@ -187,12 +187,14 @@ public class MainGui {
                     return;
                 }
                 if (e.getSource() == jButton5) { //抓
+                    System.out.println("操作：" + jButton5.getText());
                     C2Config c2Config = initC2Config();
                     ComResponse comResponse = invoker.pressButton(c2Config, 8);
-                    LogScroll.log(this.getClass(), jButton5.getText() + ":" + comResponse.getCode() + "");
+                    LogScroll.log(this.getClass(), jButton5.getText() + ":" + comResponse.getCode() + " 结果:" + comResponse.getResult());
                     return;
                 }
                 if (e.getSource() == jButton1) { //上
+                    System.out.println("操作：" + jButton1.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
                     ComResponse comResponse = invoker.pressButton(c2Config, 0);
@@ -200,6 +202,7 @@ public class MainGui {
                     return;
                 }
                 if (e.getSource() == jButton2) { //下
+                    System.out.println("操作：" + jButton2.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
                     ComResponse comResponse = invoker.pressButton(c2Config, 1);
@@ -207,6 +210,7 @@ public class MainGui {
                     return;
                 }
                 if (e.getSource() == jButton3) { //左
+                    System.out.println("操作：" + jButton3.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
                     ComResponse comResponse = invoker.pressButton(c2Config, 2);
@@ -214,6 +218,7 @@ public class MainGui {
                     return;
                 }
                 if (e.getSource() == jButton4) { //右
+                    System.out.println("操作：" + jButton4.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
                     ComResponse comResponse = invoker.pressButton(c2Config, 3);
@@ -223,7 +228,6 @@ public class MainGui {
                 LogScroll.log(this.getClass(), "unknown button source");
             };
             exec.submit(runnable);
-            System.out.println("抓");
         };
 
         //方向盘

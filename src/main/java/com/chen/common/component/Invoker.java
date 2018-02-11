@@ -84,7 +84,7 @@ public class Invoker {
         if (direction == 8 || Result.waitingConfig.equals(comResponse.getCode())) {
             currentStep.compareAndSet(2, 0);
         }
-        System.out.println("currentStep:" + currentStep.intValue());
+        //System.out.println("currentStep:" + currentStep.intValue());
         return comResponse;
     }
 
