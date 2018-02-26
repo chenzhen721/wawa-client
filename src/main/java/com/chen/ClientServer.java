@@ -10,6 +10,8 @@ import com.chen.serialport.ComPort;
 
 import javax.xml.ws.Response;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -109,21 +111,19 @@ public class ClientServer implements EventListener<String>, Receiver {
 
     static class TokenServer {
 
-        private static int token_waiting_time = 30;
+        private static int token_waiting_time = 30; //获取token的最小间隔时间
         private AtomicBoolean token = new AtomicBoolean(true);
         final ExecutorService exec = Executors.newFixedThreadPool(1);
-        private Runnable runnable = () -> { //5s后重置token
-            try {
-                Thread.sleep(token_waiting_time);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        final Timer timer = new Timer();
+        private TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                token.set(true);
             }
-            token.set(true);
         };
 
         //获取token,并指定使用时长
         private boolean apply() {
-            //token_waiting_time = timeOut;
             while (!token.compareAndSet(true, false)) {
                 try {
                     Thread.sleep(10);
@@ -131,52 +131,13 @@ public class ClientServer implements EventListener<String>, Receiver {
                     e.printStackTrace();
                 }
             }
-            exec.submit(runnable);
+            timer.schedule(timerTask, token_waiting_time);
             return true;
         }
     }
 
     public static void main(String[] args) {
-        /*TokenServer tokenServer = new TokenServer();
-        ComResponse response = new ComResponse();
-        response.setCode("10000");
-        long time = System.currentTimeMillis();
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if (tokenServer.apply()) {
-                        respQueue.offer(response);
-                        ComResponse comResponse1 = new ComResponse();
-                        comResponse1.setCode("11000");
-                        respQueue.offer(comResponse1);
-                    }
-                }
-            }.start();
-        try {
-            System.out.println("1");
-            ComResponse response2 = respQueue.poll(10000, TimeUnit.MILLISECONDS);
-            if (response2 != null) {
-                System.out.println("poll:" + response2.getCode());
-                System.out.println("poll:" + (response2 == response));
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
-            System.out.println("2");
-            ComResponse response3 = respQueue.take();
-            System.out.println("3");
-            System.out.println("take:" + response3.getCode());
-            System.out.println("take:" + (response3 == response));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.exit(0);*/
+
     }
 
 
