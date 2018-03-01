@@ -1,8 +1,9 @@
-package com.wawa.common.component;
+package com.wawa.service;
 
-import com.wawa.C0Command;
-import com.wawa.C1Command;
-import com.wawa.C2Command;
+import com.wawa.common.component.Result;
+import com.wawa.service.C0Command;
+import com.wawa.service.C1Command;
+import com.wawa.service.C2Command;
 import com.wawa.model.C1Config;
 import com.wawa.model.C2Config;
 import com.wawa.model.ComRequest;
@@ -10,7 +11,10 @@ import com.wawa.model.ComResponse;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Invoker {
+public class MachineInvoker {
+
+    private static MachineInvoker machineInvoker;
+    private static ClientServer clientServer;
 
     private C0Command c0Command;
     private C1Command c1Command;
@@ -18,9 +22,36 @@ public class Invoker {
 
     private AtomicInteger currentStep = new AtomicInteger(0);
 
+    public MachineInvoker getInstance(String comPort) {
+        if (machineInvoker == null) {
+            return null;
+        }
+        return machineInvoker;
+    }
+
+    //初始化invoker 单例模式
+    public void init(String comPort) {
+        if (machineInvoker != null) {
+            return;
+        }
+        machineInvoker = new MachineInvoker();
+        clientServer = ClientServer.getInstance(comPort);
+        C0Command c0Command = new C0Command(clientServer);
+        C1Command c1Command = new C1Command(clientServer);
+        C2Command c2Command = new C2Command(clientServer);
+        machineInvoker.setC0Command(c0Command);
+        machineInvoker.setC1Command(c1Command);
+        machineInvoker.setC2Command(c2Command);
+    }
+
+    public void destroy() {
+        if (clientServer != null) {
+            clientServer.onClose();
+        }
+    }
+
     /**
      * 0-空闲，1-游戏中
-     *
      * @return
      */
     public ComResponse status() {
@@ -57,7 +88,6 @@ public class Invoker {
     /**
      * 行为控制
      * 0-u, 1-d, 2-l, 3-r, 8-doll
-     *
      * @param direction
      * @return
      */
@@ -92,7 +122,6 @@ public class Invoker {
 
     /**
      * 4, 5, 6, 7
-     *
      * @param direction
      * @return
      */

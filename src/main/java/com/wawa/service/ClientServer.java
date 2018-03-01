@@ -1,4 +1,4 @@
-package com.wawa;
+package com.wawa.service;
 
 import com.wawa.common.component.Event;
 import com.wawa.common.component.EventListener;
@@ -6,7 +6,7 @@ import com.wawa.common.component.Receiver;
 import com.wawa.common.utils.StringUtils;
 import com.wawa.model.ComRequest;
 import com.wawa.model.ComResponse;
-import com.wawa.serialport.ComPort;
+import com.wawa.common.serialport.ComPort;
 
 import java.util.Timer;
 import java.util.TimerTask;

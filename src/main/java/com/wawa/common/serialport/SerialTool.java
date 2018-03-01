@@ -1,4 +1,4 @@
-package com.wawa.serialport;
+package com.wawa.common.serialport;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;

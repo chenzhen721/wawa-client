@@ -9,7 +9,6 @@
       http://logback.qos.ch/translator/
 -->
 <configuration>
-
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d %p [%c] - &lt;%m&gt;%n</pattern>
@@ -17,70 +16,25 @@
     </appender>
 
     <appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
-        <File>${webapp.root}/../logs/star-${jetty.port}.log</File>
+        <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+        <File>${webapp.root}/../logs/wawa-logfile.log</File>
         <encoder>
             <pattern>%d %p [%c] - %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <maxIndex>10</maxIndex>
-            <FileNamePattern>${webapp.root}/../logs/star-${jetty.port}.log.%i</FileNamePattern>
+            <FileNamePattern>${webapp.root}/../logs/wawa-logfile.log.%i</FileNamePattern>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <MaxFileSize>4096KB</MaxFileSize>
         </triggeringPolicy>
     </appender>
 
-    <appender name="testlogfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
-        <File>${webapp.root}/../logs/star-test.log</File>
-        <encoder>
-            <pattern>%d %p [%c] - %m%n</pattern>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <maxIndex>10</maxIndex>
-            <FileNamePattern>${webapp.root}/../logs/star-test.log.%i</FileNamePattern>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <MaxFileSize>8192KB</MaxFileSize>
-        </triggeringPolicy>
-    </appender>
-
-    <appender name="errorfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
-        <File>${webapp.root}/../logs/star-error-${jetty.port}.log</File>
-        <encoder>
-            <pattern>%d %p [%c] - %m%n</pattern>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!--日志文件输出的文件名-->
-            <FileNamePattern>${webapp.root}/../logs/star-error-${jetty.port}-%d{yyyy-MM-dd}.log</FileNamePattern>
-            <MaxHistory>15</MaxHistory>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <MaxFileSize>8192KB</MaxFileSize>
-        </triggeringPolicy>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-    </appender>
-
-    <!--<logger name="com.wawa.web" level="ERROR">
-        <appender-ref ref="${log.error.target}"/>
-    </logger>-->
-
-    <logger name="com.wawa" level="DEBUG"/>
-    <logger name="com.wawa.common.util" level="DEBUG"/>
+    <logger name="com.wawa" level="DEBUG">
+        <appender-ref ref="logfile"/>
+    </logger>
 
     <root level="INFO">
         <appender-ref ref="stdout"/>
     </root>
-    <!--<logger name="com.wawa" level="${log.web.level}"/>
-    <logger name="com.wawa.common.util" level="${log.web.level}"/>
-
-    <root level="INFO">
-        <appender-ref ref="${log.target}"/>
-    </root>-->
 </configuration>

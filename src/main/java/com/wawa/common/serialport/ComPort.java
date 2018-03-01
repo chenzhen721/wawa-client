@@ -1,10 +1,10 @@
-package com.wawa.serialport;
+package com.wawa.common.serialport;
 
 import com.wawa.common.component.Event;
 import com.wawa.common.component.EventObserver;
 import com.wawa.common.utils.StringUtils;
-import com.wawa.serialport.component.ReceiveDataListener;
-import com.wawa.serialport.component.ReceiveDataObserver;
+import com.wawa.common.serialport.component.ReceiveDataListener;
+import com.wawa.common.serialport.component.ReceiveDataObserver;
 import gnu.io.SerialPort;
 
 import java.util.concurrent.Executor;

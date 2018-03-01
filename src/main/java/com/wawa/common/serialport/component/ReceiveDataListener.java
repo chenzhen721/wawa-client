@@ -1,4 +1,4 @@
-package com.wawa.serialport.component;
+package com.wawa.common.serialport.component;
 
 import com.wawa.common.component.Event;
 import com.wawa.common.component.EventListener;

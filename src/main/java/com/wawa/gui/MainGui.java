@@ -1,10 +1,10 @@
 package com.wawa.gui;
 
-import com.wawa.C0Command;
-import com.wawa.C1Command;
-import com.wawa.C2Command;
-import com.wawa.ClientServer;
-import com.wawa.common.component.Invoker;
+import com.wawa.service.C0Command;
+import com.wawa.service.C1Command;
+import com.wawa.service.C2Command;
+import com.wawa.service.ClientServer;
+import com.wawa.service.MachineInvoker;
 import com.wawa.common.utils.NetworkUtils;
 import com.wawa.gui.component.LogScroll;
 import com.wawa.gui.component.VideoComboBox;
@@ -72,7 +72,7 @@ public class MainGui {
     private static JButton jButton3 = new JButton("左");
     private static JButton jButton4 = new JButton("右");
 
-    private Invoker invoker = new Invoker();
+    private MachineInvoker machineInvoker = new MachineInvoker();
     private C1Config c1Config = new C1Config();
     private final ExecutorService exec = Executors.newCachedThreadPool();
 
@@ -84,9 +84,9 @@ public class MainGui {
         C0Command c0Command = new C0Command(clientServer);
         C1Command c1Command = new C1Command(clientServer);
         C2Command c2Command = new C2Command(clientServer);
-        invoker.setC0Command(c0Command);
-        invoker.setC1Command(c1Command);
-        invoker.setC2Command(c2Command);
+        machineInvoker.setC0Command(c0Command);
+        machineInvoker.setC1Command(c1Command);
+        machineInvoker.setC2Command(c2Command);
 
 
         // 确保一个漂亮的外观风格
@@ -182,14 +182,14 @@ public class MainGui {
                     c1Config.setHeavyToLight(Integer.valueOf(jTextField7.getText()));
                     c1Config.setPlaytime(Integer.valueOf(jTextField8.getText()));
                     c1Config.setExitDirection(Integer.valueOf(jTextField9.getText()));
-                    ComResponse comResponse = invoker.start(c1Config);
+                    ComResponse comResponse = machineInvoker.start(c1Config);
                     LogScroll.log(this.getClass(), jButton.getText() + ":" + comResponse.getCode());
                     return;
                 }
                 if (e.getSource() == jButton5) { //抓
                     System.out.println("操作：" + jButton5.getText());
                     C2Config c2Config = initC2Config();
-                    ComResponse comResponse = invoker.pressButton(c2Config, 8);
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, 8);
                     LogScroll.log(this.getClass(), jButton5.getText() + ":" + comResponse.getCode() + " 结果:" + comResponse.getResult());
                     return;
                 }
@@ -197,7 +197,7 @@ public class MainGui {
                     System.out.println("操作：" + jButton1.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
-                    ComResponse comResponse = invoker.pressButton(c2Config, 0);
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, 0);
                     LogScroll.log(this.getClass(), jButton1.getText() + ":" + comResponse.getCode() + "");
                     return;
                 }
@@ -205,7 +205,7 @@ public class MainGui {
                     System.out.println("操作：" + jButton2.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
-                    ComResponse comResponse = invoker.pressButton(c2Config, 1);
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, 1);
                     LogScroll.log(this.getClass(), jButton2.getText() + ":" + comResponse.getCode() + "");
                     return;
                 }
@@ -213,7 +213,7 @@ public class MainGui {
                     System.out.println("操作：" + jButton3.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
-                    ComResponse comResponse = invoker.pressButton(c2Config, 2);
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, 2);
                     LogScroll.log(this.getClass(), jButton3.getText() + ":" + comResponse.getCode() + "");
                     return;
                 }
@@ -221,7 +221,7 @@ public class MainGui {
                     System.out.println("操作：" + jButton4.getText());
                     C2Config c2Config = initC2Config();
                     c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
-                    ComResponse comResponse = invoker.pressButton(c2Config, 3);
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, 3);
                     LogScroll.log(this.getClass(), jButton4.getText() + ":" + comResponse.getCode() + "");
                     return;
                 }
@@ -315,6 +315,7 @@ public class MainGui {
     }
 
     public static void main(String[] args) {
+        logger.info("haha hello.");
         MainGui mainGui = new MainGui();
         // 显示应用 GUI
         SwingUtilities.invokeLater(mainGui::createAndShowGUI);

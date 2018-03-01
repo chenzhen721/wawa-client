@@ -1,4 +1,4 @@
-package com.wawa;
+package com.wawa.service;
 
 import com.wawa.common.component.Command;
 import com.wawa.common.component.Receiver;

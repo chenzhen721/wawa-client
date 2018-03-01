@@ -1,6 +1,6 @@
 package com.wawa.gui.component;
 
-import com.wawa.serialport.SerialTool;
+import com.wawa.common.serialport.SerialTool;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
