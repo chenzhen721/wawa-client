@@ -4,7 +4,7 @@ import com.wawa.common.utils.StringUtils;
 
 public class ComResponse {
     private String code;
-    private Boolean result;
+    private Boolean result; //只作为游戏结果使用
     private byte prefix1;
     private byte prefix2;
     private byte command;

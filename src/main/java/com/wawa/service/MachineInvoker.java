@@ -22,7 +22,7 @@ public class MachineInvoker {
 
     private AtomicInteger currentStep = new AtomicInteger(0);
 
-    public MachineInvoker getInstance(String comPort) {
+    public static MachineInvoker getInstance() {
         if (machineInvoker == null) {
             return null;
         }
