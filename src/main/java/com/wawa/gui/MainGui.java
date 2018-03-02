@@ -1,16 +1,15 @@
 package com.wawa.gui;
 
-import com.wawa.service.C0Command;
-import com.wawa.service.C1Command;
-import com.wawa.service.C2Command;
-import com.wawa.service.ClientServer;
-import com.wawa.service.MachineInvoker;
-import com.wawa.common.utils.NetworkUtils;
 import com.wawa.gui.component.LogScroll;
 import com.wawa.gui.component.VideoComboBox;
 import com.wawa.model.C1Config;
 import com.wawa.model.C2Config;
 import com.wawa.model.ComResponse;
+import com.wawa.service.C0Command;
+import com.wawa.service.C1Command;
+import com.wawa.service.C2Command;
+import com.wawa.service.ClientServer;
+import com.wawa.service.MachineInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +19,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -87,7 +84,6 @@ public class MainGui {
         machineInvoker.setC0Command(c0Command);
         machineInvoker.setC1Command(c1Command);
         machineInvoker.setC2Command(c2Command);
-
 
         // 确保一个漂亮的外观风格
         JFrame.setDefaultLookAndFeelDecorated(true);
@@ -322,12 +318,6 @@ public class MainGui {
         //root目录
         logger.info(System.getProperty("user.dir"));
 
-        //首先获取本机ip，然后选出第一个不是127的ip地址，获取其对应的mac地址即可，同时设置对应的名称
-        try {
-            System.out.println(NetworkUtils.getMacAddress(InetAddress.getByName("192.168.0.106" ), ""));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
     }
 
 }

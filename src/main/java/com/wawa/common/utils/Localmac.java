@@ -22,8 +22,18 @@ public class Localmac {
         System.out.println(ia);
         getLocalMac(ia);
     }
+
+    public static String getMac() {
+        String localmac = null;
+        try {
+            localmac = Localmac.getLocalMac(InetAddress.getLocalHost());
+        } catch (Exception e) {
+
+        }
+        return localmac;
+    }
+
     public static String getLocalMac(InetAddress ia) throws SocketException {
-        // TODO Auto-generated method stub
         //获取网卡，获取地址
         byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
         System.out.println("mac数组长度："+mac.length);
