@@ -2,10 +2,15 @@ package com.wawa.service;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.common.eventbus.Subscribe;
+import com.wawa.Main;
 import com.wawa.common.component.Result;
 import com.wawa.common.utils.JSONUtil;
+import com.wawa.common.utils.PropertyUtils;
 import com.wawa.model.ActionTypeEnum;
 import com.wawa.model.ComResponse;
+import com.wawa.model.EventEnum;
+import com.wawa.model.EventSetup;
 import com.wawa.model.Response;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -15,17 +20,17 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Properties;
 
 public class SocketServer {
     private final static Logger logger = LoggerFactory.getLogger(SocketServer.class);
     public static final TypeFactory typeFactory = TypeFactory.defaultInstance();
     private static JavaType mapType = typeFactory.constructMapType(Map.class, String.class, Object.class);
     private MachineInvoker machineInvoker;
-    private URI serverUri;
     private SocketClient socketClient;
     //来个事件监听，断线重试
 
-    public SocketServer(String uri) {
+    /*public SocketServer(String uri) {
         this.machineInvoker = MachineInvoker.getInstance();
         try {
             this.serverUri = new URI(uri);
@@ -34,8 +39,7 @@ public class SocketServer {
         }
         socketClient = new SocketClient(serverUri);
         socketClient.connect();
-        logger.info("123123123123123123123123123123.");
-    }
+    }*/
 
     public void close() {
         socketClient.close();
@@ -43,6 +47,34 @@ public class SocketServer {
 
     public void send(String message) {
         socketClient.send(message);
+    }
+
+    @Subscribe
+    public void listener(EventSetup msg) {
+        System.out.println("told me:" + msg);
+        //写入properties文件内
+        if (EventEnum.SETUPDONE == msg.getType()) {
+            PropertyUtils.writeProperties(Main.propName, Main.prop);
+            return;
+        }
+        Properties prop = Main.prop;
+        if (EventEnum.STARTUP == msg.getType()) {
+            if (machineInvoker == null) {
+                MachineInvoker.init(prop.getProperty("device.comport"));
+                machineInvoker = MachineInvoker.getInstance();
+            }
+            if (socketClient == null || !socketClient.isConnecting()) {
+                URI serverUri;
+                try {
+                    serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
+                } catch (URISyntaxException e) {
+                    logger.error("error uri." + prop.getProperty("server.uri"));
+                    return;
+                }
+                socketClient = new SocketClient(serverUri);
+                socketClient.connect();
+            }
+        }
     }
 
     public class SocketClient extends WebSocketClient {
@@ -105,7 +137,7 @@ public class SocketServer {
 
                 }
             } catch (Exception e) {
-                logger.info("illigal message:" + s);
+                logger.info("illigal message:" + s + ", exception:" + e);
             }
             logger.error("error accur while received message:" + s);
         }

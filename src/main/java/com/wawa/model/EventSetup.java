@@ -4,23 +4,14 @@ package com.wawa.model;
  * Created by Administrator on 2018/3/2.
  */
 public class EventSetup {
-    private String type;
-    private String abc;
+    private EventEnum type;
 
-    public String getType() {
+    public EventEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(EventEnum type) {
         this.type = type;
-    }
-
-    public String getAbc() {
-        return abc;
-    }
-
-    public void setAbc(String abc) {
-        this.abc = abc;
     }
 
     @Override

@@ -22,6 +22,10 @@ public class MachineInvoker {
 
     private AtomicInteger currentStep = new AtomicInteger(0);
 
+    private MachineInvoker() {
+
+    }
+
     public static MachineInvoker getInstance() {
         if (machineInvoker == null) {
             return null;
@@ -29,8 +33,8 @@ public class MachineInvoker {
         return machineInvoker;
     }
 
-    //初始化invoker 单例模式
-    public void init(String comPort) {
+    //初始化invoker
+    public static void init(String comPort) {
         if (machineInvoker != null) {
             return;
         }

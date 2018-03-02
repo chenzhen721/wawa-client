@@ -111,12 +111,6 @@ public class ClientServer implements EventListener<String>, Receiver {
         private AtomicBoolean token = new AtomicBoolean(true);
         final ExecutorService exec = Executors.newFixedThreadPool(1);
         final Timer timer = new Timer();
-        private TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                token.set(true);
-            }
-        };
 
         //获取token,并指定使用时长
         private boolean apply() {
@@ -127,6 +121,12 @@ public class ClientServer implements EventListener<String>, Receiver {
                     e.printStackTrace();
                 }
             }
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    token.set(true);
+                }
+            };
             timer.schedule(timerTask, token_waiting_time);
             return true;
         }

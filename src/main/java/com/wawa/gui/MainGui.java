@@ -69,7 +69,7 @@ public class MainGui {
     private static JButton jButton3 = new JButton("左");
     private static JButton jButton4 = new JButton("右");
 
-    private MachineInvoker machineInvoker = new MachineInvoker();
+    private MachineInvoker machineInvoker = MachineInvoker.getInstance();
     private C1Config c1Config = new C1Config();
     private final ExecutorService exec = Executors.newCachedThreadPool();
 
