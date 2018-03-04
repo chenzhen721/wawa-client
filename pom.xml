@@ -222,7 +222,7 @@
                             <!-- 在jar包中增加依赖jar路径说明 -->
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>dependency/</classpathPrefix>
-                            <mainClass>com.wawa.gui.MainGui</mainClass>
+                            <mainClass>com.wawa.Main</mainClass>
                         </manifest>
 
                         <!-- 用maven在MANIFEST.MF资料中的Class-Path中增加当前目录(.)  -->

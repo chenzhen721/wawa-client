@@ -23,11 +23,6 @@ public class Main {
                 prop.setProperty("device.id", "ww-" + deviceId);
             }
         }
-        //todo 请求服务端配置中心拉取配置
-        //todo 如果失败另说
-
-
-
 
         //启动初始化界面，让用户选择相关参数，并提交至服务器
         StartupGui startupGui = new StartupGui();

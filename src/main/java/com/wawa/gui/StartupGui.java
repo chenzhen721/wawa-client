@@ -44,12 +44,13 @@ public class StartupGui extends JFrame {
     private final ExecutorService exec = Executors.newCachedThreadPool();
     private EventBus eventBus = new EventBus();
 
-    private static JLabel jLabel= new JLabel("设备编号"); //device.id mac通常是mac地址
+    private static JLabel jLabel = new JLabel("设备编号"); //device.id mac通常是mac地址
     private static JLabel jLabel00 = new JLabel("");
     private static JLabel jLabel1 = new JLabel("设备名称"); //device.name手动指定（方便查看）
     private static JTextField jTextField1 = new JTextField("");
     private static JLabel jLabel2 = new JLabel("操作控制URI"); //server.uri
-    private static JLabel jLabel22 = new JLabel("");
+    //    private static JLabel jLabel22 = new JLabel("");
+    private static JTextField jLabel22 = new JTextField("");
     private static JLabel jLabel3 = new JLabel("视频流URI"); //stream.uri
     private static JLabel jLabel33 = new JLabel("");
     private static JLabel jLabel4 = new JLabel("娃娃机串口号"); //device.comport
@@ -71,8 +72,8 @@ public class StartupGui extends JFrame {
         frame_width = (int) (dimension.getWidth() * rate);
         frame_height = (int) (dimension.getHeight() * rate);
         int width = 200, height = 25, deltaHeight = 40, deltaWidth = 120;
-        int x = frame_width/2 - width;
-        int y = frame_height/12;
+        int x = frame_width / 2 - width;
+        int y = frame_height / 12;
         jLabel7.setBounds(x, y, width, height);
         jLabel77.setBounds(x + deltaWidth, y, width, height);
         jpanel.add(jLabel7);
@@ -119,13 +120,13 @@ public class StartupGui extends JFrame {
         jpanel.add(cameraBox2);
 
         y = y + deltaHeight;
-        jButton.setBounds(x, y, width/2, height);
-        jButton1.setBounds(x + deltaWidth, y, width/2, height);
+        jButton.setBounds(x, y, width / 2, height);
+        jButton1.setBounds(x + deltaWidth, y, width / 2, height);
         jpanel.add(jButton);
         jpanel.add(jButton1);
 
         y = y + deltaHeight;
-        jLabel9.setBounds(x, y, width*2, height);
+        jLabel9.setBounds(x, y, width * 2, height);
         jpanel.add(jLabel9);
     }
 
@@ -168,8 +169,7 @@ public class StartupGui extends JFrame {
         this.setResizable(false);
         this.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e)
-            {
+            public void windowClosing(WindowEvent e) {
                 try {
                     Thread.sleep(30);
                 } catch (InterruptedException e1) {
@@ -216,7 +216,7 @@ public class StartupGui extends JFrame {
         comboBoxModel.setSelectedItem(selectedItem);
         comPortBox1.setModel(comboBoxModel);
 
-        String [] cameraList = CaptureUtils.cameraList();
+        String[] cameraList = CaptureUtils.cameraList();
 
         String camera1 = prop.getProperty("device.camera1"); //摄像头1
         array = new String[cameraList.length + 1];
@@ -227,7 +227,7 @@ public class StartupGui extends JFrame {
         } else {
             array[0] = "请选择视频设备";
             selectedItem = array[0];
-            for(int i = 0; i < cameraList.length; i++) {
+            for (int i = 0; i < cameraList.length; i++) {
                 if (cameraList[i].equals(camera1)) {
                     selectedItem = camera1;
                 }
@@ -267,57 +267,57 @@ public class StartupGui extends JFrame {
     }
 
     public boolean postConfig() {
-        Properties prop = Main.prop;
-        String _id = prop.getProperty("device.id"); //机器ID，通常是机器的mac
-        String name = jTextField1.getText(); //机器名称，维护标识
-        if (StringUtils.isBlank(name)) {
-            jLabel9.setText("请填写机器名称。");
-            return false;
-        }
-        prop.setProperty("device.name", name);
-        String comport = (String)comPortBox1.getSelectedItem();
-        int index = comPortBox1.getSelectedIndex();
-        if (index == 0 || StringUtils.isBlank(comport)) {
-            jLabel9.setText("请选择串口号。");
-            return false;
-        }
-        prop.setProperty("device.comport", comport);
-        String camera1 = (String)cameraBox1.getSelectedItem();
-        int camera1Index = cameraBox1.getSelectedIndex();
-        if (camera1Index == 0) {
-            camera1 = null;
-        }
-        prop.setProperty("device.camera1", camera1);
-        String camera2 = (String)cameraBox2.getSelectedItem();
-        int camera2Index = cameraBox2.getSelectedIndex();
-        if (camera2Index == 0) {
-            camera2 = null;
-        }
-        if (StringUtils.isBlank(camera1) && StringUtils.isBlank(camera2)) {
-            jLabel9.setText("请选择摄像头。");
-            return false;
-        }
-        if (camera1Index == camera2Index) {
-            camera2 = "";
-            cameraBox2.setSelectedIndex(0);
-            jLabel9.setText("警告：两个摄像头配置为同一个，只生效一个");
-        }
-        prop.setProperty("device.camera2", camera2);
-
-        String url = prop.getProperty("device.url");
-        if (url == null) {
-            url = Main.url;
-        }
-        Map<String, String> param = new HashMap<>();
-        param.put("_id", _id);
-        param.put("name", name);
-        param.put("comport", comport);
-        param.put("camera1", camera1);
-        param.put("camera2", camera2);
         try {
+            Properties prop = Main.prop;
+            String _id = prop.getProperty("device.id"); //机器ID，通常是机器的mac
+            String name = jTextField1.getText(); //机器名称，维护标识
+            if (StringUtils.isBlank(name)) {
+                jLabel9.setText("请填写机器名称。");
+                return false;
+            }
+            prop.setProperty("device.name", name);
+            String comport = (String) comPortBox1.getSelectedItem();
+            int index = comPortBox1.getSelectedIndex();
+            if (index == 0 || StringUtils.isBlank(comport)) {
+                jLabel9.setText("请选择串口号。");
+                return false;
+            }
+            prop.setProperty("device.comport", comport);
+            String camera1 = (String) cameraBox1.getSelectedItem();
+            int camera1Index = cameraBox1.getSelectedIndex();
+            if (camera1Index == 0) {
+                camera1 = null;
+            }
+            prop.setProperty("device.camera1", camera1);
+            String camera2 = (String) cameraBox2.getSelectedItem();
+            int camera2Index = cameraBox2.getSelectedIndex();
+            if (camera2Index == 0) {
+                camera2 = "";
+            }
+            if (StringUtils.isBlank(camera1) && StringUtils.isBlank(camera2)) {
+                jLabel9.setText("请选择摄像头。");
+                return false;
+            }
+            if (camera1Index == camera2Index) {
+                camera2 = "";
+                cameraBox2.setSelectedIndex(0);
+                jLabel9.setText("警告：两个摄像头配置为同一个，只生效一个");
+            }
+            prop.setProperty("device.camera2", camera2);
+
+            String url = prop.getProperty("device.url");
+            if (url == null) {
+                url = Main.url;
+            }
+            Map<String, String> param = new HashMap<>();
+            param.put("_id", _id);
+            param.put("name", name);
+            param.put("comport", comport);
+            param.put("camera1", camera1);
+            param.put("camera2", camera2);
             String str = HttpClientUtils.post(url, param, null);
             Response<Map<String, Object>> resp = parseResponse(str);
-            if (resp == null || resp.getCode() == null || !"1".equals(resp.getCode())) {
+            if (resp == null || resp.getCode() == null || 1 != resp.getCode()) {
                 jLabel9.setText("配置信息拉取失败，请联系管理员。" + str);
                 return false;
             }
@@ -349,7 +349,7 @@ public class StartupGui extends JFrame {
         return false;
     }
 
-    public Response<Map<String, Object>> parseResponse(String response) {
+    public static Response<Map<String, Object>> parseResponse(String response) {
         JavaType innerType = typeFactory.constructMapLikeType(Map.class, String.class, Object.class);
         JavaType javaType = typeFactory.constructSimpleType(Response.class, new JavaType[]{innerType});
         try {

@@ -1,5 +1,6 @@
 package com.wawa.service;
 
+import com.wawa.Main;
 import com.wawa.common.component.Result;
 import com.wawa.service.C0Command;
 import com.wawa.service.C1Command;
@@ -8,13 +9,16 @@ import com.wawa.model.C1Config;
 import com.wawa.model.C2Config;
 import com.wawa.model.ComRequest;
 import com.wawa.model.ComResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MachineInvoker {
-
+    public static final Logger logger = LoggerFactory.getLogger(MachineInvoker.class);
     private static MachineInvoker machineInvoker;
     private static ClientServer clientServer;
+    private static Boolean isMock = false;
 
     private C0Command c0Command;
     private C1Command c1Command;
@@ -46,6 +50,9 @@ public class MachineInvoker {
         machineInvoker.setC0Command(c0Command);
         machineInvoker.setC1Command(c1Command);
         machineInvoker.setC2Command(c2Command);
+        if (Main.prop.containsKey("client.mock")) {
+            isMock = Boolean.valueOf((String) Main.prop.get("client.mock"));
+        }
     }
 
     public void destroy() {
@@ -60,6 +67,9 @@ public class MachineInvoker {
      */
     public ComResponse status() {
         if (currentStep.get() == 0) {
+            if (isMock != null && isMock) {
+                return mockSuccess();
+            }
             return c0Command.execute(C0Command.comRequest);
         }
         ComResponse comResponse = new ComResponse();
@@ -76,16 +86,20 @@ public class MachineInvoker {
         }
         ComRequest request = c1Command.create(c1Config);
         ComResponse comResponse = c1Command.execute(request);
+        if (isMock != null && isMock) {
+            comResponse = mockSuccess();
+        }
         int update = 0;
         if (!Result.success.equals(comResponse.getCode())) {
             if (Result.operating.equals(comResponse.getCode())) {
                 update = 2;
             }
+            comResponse.setCode(Result.fail);
         } else {
             update = 2;
+            comResponse.setCode(Result.success);
         }
         currentStep.compareAndSet(1, update);
-        System.out.println("currentStep:" + currentStep.get());
         return comResponse;
     }
 
@@ -96,7 +110,7 @@ public class MachineInvoker {
      * @return
      */
     public ComResponse pressButton(C2Config c2Config, int direction) {
-        if (currentStep.get() != 2) {
+        if (currentStep.get() != 2 && !isMock) {
             ComResponse comResponse = new ComResponse();
             comResponse.setCode(Result.waitingConfig);
             return comResponse;
@@ -117,10 +131,12 @@ public class MachineInvoker {
                 break;
         }
         ComResponse comResponse = c2Command.execute(c2Command.create(c2Config));
+        if (isMock != null && isMock) {
+            comResponse = mockSuccess();
+        }
         if (direction == 8 || Result.waitingConfig.equals(comResponse.getCode())) {
             currentStep.compareAndSet(2, 0);
         }
-        //System.out.println("currentStep:" + currentStep.intValue());
         return comResponse;
     }
 
@@ -145,6 +161,13 @@ public class MachineInvoker {
                 break;
         }
         return c2Command.execute(c2Command.create(c2Config));
+    }
+
+    private ComResponse mockSuccess() {
+        ComResponse comResponse = new ComResponse();
+        comResponse.setCode(Result.success);
+        comResponse.setResult(true);
+        return comResponse;
     }
 
     public C0Command getC0Command() {

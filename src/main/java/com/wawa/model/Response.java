@@ -2,7 +2,7 @@ package com.wawa.model;
 
 public class Response<T> {
     private String id;
-    private String code;
+    private Integer code;
     private T data;
 
     public String getId() {
@@ -13,11 +13,11 @@ public class Response<T> {
         this.id = id;
     }
 
-    public String getCode() {
+    public Integer getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(Integer code) {
         this.code = code;
     }
 
