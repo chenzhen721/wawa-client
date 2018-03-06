@@ -4,6 +4,7 @@ import com.wawa.common.utils.Localmac;
 import com.wawa.common.utils.PropertyUtils;
 import com.wawa.gui.StartupGui;
 import com.wawa.service.SocketServer;
+import com.wawa.service.VideoServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,10 @@ public class Main {
 
         //启动初始化界面，让用户选择相关参数，并提交至服务器
         StartupGui startupGui = new StartupGui();
+        //操作流
         startupGui.register(new SocketServer());
+        //视频流
+        startupGui.register(new VideoServer());
         // 显示应用 GUI
         SwingUtilities.invokeLater(startupGui::createAndShowGUI);
 

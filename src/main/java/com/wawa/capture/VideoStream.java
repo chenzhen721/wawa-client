@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 public class VideoStream {
-    Logger logger = LoggerFactory.getLogger(VideoStream.class);
+    private final Logger logger = LoggerFactory.getLogger(VideoStream.class);
 
     private final ArrayBlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(10);
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -72,8 +72,12 @@ public class VideoStream {
                 byte[] tmp = new byte[8912];
                 int len = inputStream.read(tmp, 0, tmp.length);
                 while (len > -1) {
+                    if (queue.size() >= 10) {
+                        logger.info("清空的队列数量：" + queue.size());
+                        queue.clear();
+                    }
                     boolean offer = queue.add(Arrays.copyOf(tmp, len));
-                    logger.debug("读取数量：" + len + "offerred stream, result:" + offer);
+                    logger.debug("读取数量：" + len + " offerred stream, result:" + offer);
                     len = inputStream.read(tmp, 0, tmp.length);
                 }
                 return null;
@@ -90,10 +94,6 @@ public class VideoStream {
                 String line;
                 BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
                 while ((line = reader.readLine()) != null) {
-                    if (queue.size() > 10) {
-                        queue.clear();
-                        logger.info("====================>>:queue too full to clear.");
-                    }
                     logger.info(line);
                     //todo 如果有错误信息 需要重启
                     //eventBus.post("error");
@@ -106,17 +106,22 @@ public class VideoStream {
 
     //todo 这个地方需要好好做一下
     public byte[] readStream() {
-        byte[] bytes = new byte[0];
+        byte[] bytes = null;
         try {
             bytes = queue.take();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("" + e);
         }
         return bytes;
     }
 
 
     public void destroy() {
+        try {
+            process.getInputStream().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         process.destroy();
         process = null;
         streamFutureTask.cancel(true);
@@ -156,28 +161,32 @@ public class VideoStream {
             e.printStackTrace();
         }*/
 
-        VideoStream videoStream = new VideoStream("e2eSoft VCam");
+        VideoStream videoStream = new VideoStream("ICT Camera");
         videoStream.start();
 
         //来了个消费者
         int i = 0;
-        while (i++ < 100) {
+        /*while (i++ < 100) {
             writeByteToHex(videoStream.readStream());
-        }
+        }*/
         System.out.println("game over");
-        videoStream.destroy();
+        //videoStream.destroy();
         /*System.out.println("start again");
         videoStream.start();*/
         System.out.println("destroy success.");
-
+        /*try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         videoStream.start();
         i = 0;
         while (i++ < 100) {
             writeByteToHex(videoStream.readStream());
         }
         System.out.println("really game over.-_-");
-        videoStream.destroy();
-        System.exit(0);
+        videoStream.destroy();*/
+        //System.exit(0);
     }
 
 

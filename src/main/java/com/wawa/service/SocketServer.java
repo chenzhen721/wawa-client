@@ -64,9 +64,10 @@ public class SocketServer {
                         return;
                     }
                     socketClient = new SocketClient(serverUri);
+                    socketClient.register(this);
                     socketClient.connect();
-                    //todo 开启心跳
                 }
+                //todo 开启心跳
             }
         } catch (Exception e) {
             System.out.println("" + e);
@@ -214,9 +215,9 @@ public class SocketServer {
         public void onClose(int i, String s, boolean b) {
             //发送通知 断线重连
             logger.info("close.i:" + i + ", s:" + s + ", b:" + b);
-            /*EventSetup eventSetup = new EventSetup();
+            EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
-            eventBus.post(eventSetup);*/
+            eventBus.post(eventSetup);
 
         }
 

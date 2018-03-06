@@ -42,7 +42,7 @@ public class StartupGui extends JFrame {
     public static final double rate = 0.5;
     public static final JPanel jpanel = new JPanel();
     private final ExecutorService exec = Executors.newCachedThreadPool();
-    private EventBus eventBus = new EventBus();
+    private EventBus eventBus = new EventBus(); //按钮事件触发
 
     private static JLabel jLabel = new JLabel("设备编号"); //device.id mac通常是mac地址
     private static JLabel jLabel00 = new JLabel("");
