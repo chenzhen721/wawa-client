@@ -276,12 +276,13 @@ public class StartupGui extends JFrame {
                 return false;
             }
             prop.setProperty("device.name", name);
-            String comport = (String) comPortBox1.getSelectedItem();
-            int index = comPortBox1.getSelectedIndex();
+//            String comport = (String) comPortBox1.getSelectedItem();//todo
+            String comport = "COM1";
+            /*int index = comPortBox1.getSelectedIndex();
             if (index == 0 || StringUtils.isBlank(comport)) {
                 jLabel9.setText("请选择串口号。");
                 return false;
-            }
+            }*/
             prop.setProperty("device.comport", comport);
             String camera1 = (String) cameraBox1.getSelectedItem();
             int camera1Index = cameraBox1.getSelectedIndex();

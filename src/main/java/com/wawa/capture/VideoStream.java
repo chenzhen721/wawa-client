@@ -73,11 +73,11 @@ public class VideoStream {
                 int len = inputStream.read(tmp, 0, tmp.length);
                 while (len > -1) {
                     if (queue.size() >= 10) {
-                        logger.info("清空的队列数量：" + queue.size());
+                        //logger.info("清空的队列数量：" + queue.size());
                         queue.clear();
                     }
                     boolean offer = queue.add(Arrays.copyOf(tmp, len));
-                    logger.debug("读取数量：" + len + " offerred stream, result:" + offer);
+                    //logger.debug("读取数量：" + len + " offerred stream, result:" + offer);
                     len = inputStream.read(tmp, 0, tmp.length);
                 }
                 return null;

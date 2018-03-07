@@ -49,7 +49,7 @@ public class VideoServer {
                             URI serverUri;
                             try {
                                 serverUri = new URI(prop.getProperty("stream.uri") +
-                                        "?device_id=" + prop.getProperty("device.id") + "&camera=" + camera);
+                                        "?device_id=" + prop.getProperty("device.id") + "&stream=" + i);
                             } catch (URISyntaxException e) {
                                 logger.error("error uri." + prop.getProperty("stream.uri"));
                                 return;
@@ -98,7 +98,9 @@ public class VideoServer {
                 futureTask = new FutureTask<>(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        sendStream();
+                        while (!futureTask.isCancelled()) {
+                            sendStream();
+                        }
                         return null;
                     }
                 });
@@ -145,13 +147,16 @@ public class VideoServer {
         }
 
         public void sendStream() {
-            VideoStream videoStream = videoMap.get(streamName);
-            if (videoStream != null) {
-                byte[] tmp;
-                while ((tmp = videoStream.readStream()) != null) {
-                    this.send(tmp);
+                try {
+                    VideoStream videoStream = videoMap.get(streamName);
+                    if (videoStream != null) {
+                        byte[] tmp = videoStream.readStream();
+                        if (tmp != null)
+                        this.send(tmp);
+                    }
+                } catch (Exception e) {
+                    logger.error("" + e);
                 }
-            }
         }
 
         public void register(Object event) {
