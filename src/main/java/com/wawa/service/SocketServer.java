@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.NotYetConnectedException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -65,7 +64,7 @@ public class SocketServer {
                             try {
                                 socketClient.sendPing();
                             } catch (Exception e) {
-                                logger.error("error to ping server." + e);
+                                logger.error("error to ping SocketServer." + e);
                             }
                         }
                     };
@@ -74,13 +73,14 @@ public class SocketServer {
             }
             if (EventEnum.SHUTDOWN == msg.getType()) {
                 //尝试重启websocket
-                logger.debug("========>尝试重新连接socket");
+                logger.info("========>尝试重新连接socket");
                 //服务器断开了连接，需要监听端口重启
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         try {
-                            socketStart();
+                            boolean result = socketStart();
+                            logger.info("restart socketServer result:" + result);
                         } catch (Exception e) {
                             logger.error("error to start socket." + e);
                         }
@@ -94,22 +94,26 @@ public class SocketServer {
 
     private boolean socketStart() {
         Properties prop = Main.prop;
-        if (machineInvoker == null) {
-            MachineInvoker.init(prop.getProperty("device.comport"));
-            machineInvoker = MachineInvoker.getInstance();
-        }
-        if (socketClient == null || socketClient.isClosed()) {
-            URI serverUri;
-            try {
-                serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
-            } catch (URISyntaxException e) {
-                logger.error("error uri." + prop.getProperty("server.uri"));
-                return false;
+        try {
+            if (machineInvoker == null) {
+                MachineInvoker.init(prop.getProperty("device.comport"));
+                machineInvoker = MachineInvoker.getInstance();
             }
-            socketClient = new SocketClient(serverUri);
-            socketClient.register(this);
-            socketClient.connect();
-            return true;
+            if (socketClient == null || socketClient.isClosed()) {
+                URI serverUri;
+                try {
+                    serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
+                } catch (URISyntaxException e) {
+                    logger.error("error uri." + prop.getProperty("server.uri"));
+                    return false;
+                }
+                socketClient = new SocketClient(serverUri);
+                socketClient.register(this);
+                socketClient.connect();
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("socketServer connect error." + e);
         }
         return false;
     }

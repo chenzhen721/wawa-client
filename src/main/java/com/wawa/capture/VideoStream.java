@@ -1,21 +1,15 @@
 package com.wawa.capture;
 
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.wawa.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -28,13 +22,11 @@ public class VideoStream {
     private final Logger logger = LoggerFactory.getLogger(VideoStream.class);
 
     private final BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(10);
-//    private final List<byte[]> queue = new ArrayList<>();
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private String exec;
     private Process process;
     private FutureTask streamFutureTask;
     private FutureTask errorFutureTask;
-    private EventBus eventBus = new EventBus();
 
 
     public VideoStream(String cameraName) {

@@ -34,10 +34,15 @@ public class VideoServer {
     public static final TypeFactory typeFactory = TypeFactory.defaultInstance();
     private static JavaType mapType = typeFactory.constructMapType(Map.class, String.class, Object.class);
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private final AsyncEventBus eventBus = new AsyncEventBus(Executors.newCachedThreadPool());
     private Map<String, VideoStream> videoMap = new HashMap<>();
     private Map<String, VideoSocketClient> videoSocketMap = new HashMap<>();
     private Timer timer = new Timer();
     private TimerTask pingTimerTask;
+
+    public VideoServer() {
+        register(this);
+    }
 
     @Subscribe
     public void listener(EventSetup msg) {
@@ -57,7 +62,7 @@ public class VideoServer {
                                 try {
                                     client.sendPing();
                                 } catch (Exception e) {
-                                    logger.error("error to ping server." + e);
+                                    logger.error("error to ping VideoServer." + e);
                                 }
                             }
                         }
@@ -73,9 +78,10 @@ public class VideoServer {
                     @Override
                     public void run() {
                         try {
-                            socketStart();
+                            boolean result = socketStart();
+                            logger.info("restart videoServer socket result:" + result);
                         } catch (Exception e) {
-                            logger.error("error to start socket." + e);
+                            logger.error("error to start videoServer socket." + e);
                         }
                     }
                 }, 60000);
@@ -107,7 +113,7 @@ public class VideoServer {
                 }
             }
         } catch (Exception e) {
-            logger.error("failed to open video," + e);
+            logger.error("failed to open videoServer video," + e);
         }
     }
 
@@ -134,28 +140,34 @@ public class VideoServer {
                             videoSocketClient.setStreamName("camera" + i);
                         }
                         videoSocketClient.connect();
-                        videoSocketClient.register(this);
                         videoSocketMap.put("camera" + i, videoSocketClient);
                     }
                 } else {
                     if (videoSocketMap.containsKey(socketKey)) {
                         VideoSocketClient videoSocketClient = videoSocketMap.remove(socketKey);
-                        videoSocketClient.unregister(this);
                         videoSocketClient.close();
                         videoSocketClient.futureTask.cancel(false);
                     }
                 }
             }
+            return true;
         } catch (Exception e) {
-            logger.error("failed to open socket," + e);
+            logger.error("failed to open videoServer socket," + e);
         }
         return false;
+    }
+
+    public void register(Object event) {
+        eventBus.register(event);
+    }
+
+    public void unregister(Object event) {
+        eventBus.unregister(event);
     }
 
     public class VideoSocketClient extends WebSocketClient {
         private String streamName = "";
 
-        private final AsyncEventBus eventBus = new AsyncEventBus(Executors.newCachedThreadPool());
         private FutureTask futureTask;
 
         public VideoSocketClient(URI serverUri) {
@@ -240,16 +252,17 @@ public class VideoServer {
             logger.info("close.i:" + i + ", s:" + s + ", b:" + b);
             if (i != 1000 && i != 1001) {
                 for (Map.Entry<String, VideoSocketClient> entry : videoSocketMap.entrySet()) {
-                    if (this.equals(entry.getValue())) {
-                        videoSocketMap.remove(entry.getKey());
+                    VideoSocketClient videoSocketClient = videoSocketMap.remove(entry.getKey());
+                    if (videoSocketClient != null) {
+                        FutureTask futureTask = videoSocketClient.futureTask;
+                        if (futureTask != null && !futureTask.isCancelled()) {
+                            futureTask.cancel(true);
+                        }
                     }
                 }
                 EventSetup eventSetup = new EventSetup();
                 eventSetup.setType(EventEnum.SHUTDOWN);
                 eventBus.post(eventSetup);
-                if (!futureTask.isCancelled()) {
-                    futureTask.cancel(true);
-                }
             }
         }
 
@@ -276,12 +289,5 @@ public class VideoServer {
                 }
         }
 
-        public void register(Object event) {
-            eventBus.register(event);
-        }
-
-        public void unregister(Object event) {
-            eventBus.unregister(event);
-        }
     }
 }
