@@ -30,7 +30,7 @@
         </triggeringPolicy>
     </appender>
 
-    <logger name="com.wawa" level="DEBUG">
+    <logger name="com.wawa" level="INFO">
         <appender-ref ref="logfile"/>
     </logger>
 

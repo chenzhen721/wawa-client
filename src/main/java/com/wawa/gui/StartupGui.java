@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.eventbus.EventBus;
 import com.wawa.Main;
+import com.wawa.capture.CameraList;
 import com.wawa.common.serialport.SerialTool;
 import com.wawa.common.utils.CaptureUtils;
 import com.wawa.common.utils.JSONUtil;
 import com.wawa.common.utils.http.HttpClientUtils;
+import com.wawa.gui.component.VideoComboBox;
 import com.wawa.model.EventEnum;
 import com.wawa.model.EventSetup;
 import com.wawa.model.Response;
@@ -19,6 +21,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -144,6 +147,7 @@ public class StartupGui extends JFrame {
                     }
                     refreshProp();
                     eventSetup.setType(EventEnum.SETUPDONE);
+                    jButton1.doClick();
                 }
                 if (e.getSource() == jButton1) {
                     eventSetup.setType(EventEnum.STARTUP);
@@ -154,7 +158,34 @@ public class StartupGui extends JFrame {
         };
         jButton.addActionListener(actionListener);
         jButton1.addActionListener(actionListener);
+        cameraBox1.addItemListener((itemEvent) -> {
+            int stateChange = itemEvent.getStateChange();
+            //切换的摄像头
+            if (ItemEvent.SELECTED == stateChange) {
+                int index = cameraBox1.getSelectedIndex();
+                String value = String.valueOf(cameraBox1.getSelectedItem());
+                if (index == 0) {
+                    value = "";
+                }
+                Main.prop.setProperty("device.camera1", value);
+                refreshProp();
+            }
+        });
+        cameraBox2.addItemListener((itemEvent) -> {
+            int stateChange = itemEvent.getStateChange();
+            //切换的摄像头
+            if (ItemEvent.SELECTED == stateChange) {
+                int index = cameraBox2.getSelectedIndex();
+                String value = String.valueOf(cameraBox2.getSelectedItem());
+                if (index == 0) {
+                    value = "";
+                }
+                Main.prop.setProperty("device.camera2", value);
+                refreshProp();
+            }
+        });
 
+        jButton.doClick();
 
         // 创建及设置窗口
         //设置panel的layout以及sieze
@@ -276,13 +307,12 @@ public class StartupGui extends JFrame {
                 return false;
             }
             prop.setProperty("device.name", name);
-//            String comport = (String) comPortBox1.getSelectedItem();//todo
-            String comport = "COM1";
-            /*int index = comPortBox1.getSelectedIndex();
+            String comport = (String) comPortBox1.getSelectedItem();
+            int index = comPortBox1.getSelectedIndex();
             if (index == 0 || StringUtils.isBlank(comport)) {
                 jLabel9.setText("请选择串口号。");
                 return false;
-            }*/
+            }
             prop.setProperty("device.comport", comport);
             String camera1 = (String) cameraBox1.getSelectedItem();
             int camera1Index = cameraBox1.getSelectedIndex();

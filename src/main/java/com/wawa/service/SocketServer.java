@@ -22,8 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.NotYetConnectedException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class SocketServer {
     private final static Logger logger = LoggerFactory.getLogger(SocketServer.class);
@@ -31,6 +34,8 @@ public class SocketServer {
     private static JavaType mapType = typeFactory.constructMapType(Map.class, String.class, Object.class);
     private MachineInvoker machineInvoker;
     private SocketClient socketClient;
+    private Timer timer = new Timer();
+    private TimerTask pingTimerTask;
     //来个事件监听，断线重试
 
     public void close() {
@@ -49,29 +54,64 @@ public class SocketServer {
                 PropertyUtils.writeProperties(Main.propName, Main.prop);
                 return;
             }
-            Properties prop = Main.prop;
-            if (EventEnum.STARTUP == msg.getType() || EventEnum.SHUTDOWN == msg.getType()) {
-                if (machineInvoker == null) {
-                    MachineInvoker.init(prop.getProperty("device.comport"));
-                    machineInvoker = MachineInvoker.getInstance();
+            if (EventEnum.STARTUP == msg.getType()) {
+                socketStart();
+                //心跳
+                if (pingTimerTask == null) {
+                    pingTimerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            logger.debug("==========>: send ping.");
+                            try {
+                                socketClient.sendPing();
+                            } catch (Exception e) {
+                                logger.error("error to ping server." + e);
+                            }
+                        }
+                    };
+                    timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
                 }
-                if (socketClient == null || !socketClient.isConnecting()) {
-                    URI serverUri;
-                    try {
-                        serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
-                    } catch (URISyntaxException e) {
-                        logger.error("error uri." + prop.getProperty("server.uri"));
-                        return;
+            }
+            if (EventEnum.SHUTDOWN == msg.getType()) {
+                //尝试重启websocket
+                logger.debug("========>尝试重新连接socket");
+                //服务器断开了连接，需要监听端口重启
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            socketStart();
+                        } catch (Exception e) {
+                            logger.error("error to start socket." + e);
+                        }
                     }
-                    socketClient = new SocketClient(serverUri);
-                    socketClient.register(this);
-                    socketClient.connect();
-                }
-                //todo 开启心跳
+                }, 60000);
             }
         } catch (Exception e) {
-            System.out.println("" + e);
+            logger.error("socket server init error." + e);
         }
+    }
+
+    private boolean socketStart() {
+        Properties prop = Main.prop;
+        if (machineInvoker == null) {
+            MachineInvoker.init(prop.getProperty("device.comport"));
+            machineInvoker = MachineInvoker.getInstance();
+        }
+        if (socketClient == null || socketClient.isClosed()) {
+            URI serverUri;
+            try {
+                serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
+            } catch (URISyntaxException e) {
+                logger.error("error uri." + prop.getProperty("server.uri"));
+                return false;
+            }
+            socketClient = new SocketClient(serverUri);
+            socketClient.register(this);
+            socketClient.connect();
+            return true;
+        }
+        return false;
     }
 
     public class SocketClient extends WebSocketClient {
@@ -128,7 +168,7 @@ public class SocketServer {
                 }
 
                 //查询机器状态
-                if (ActionTypeEnum.STATUS.name().equals(action)) {
+                if (ActionTypeEnum.机器状态.getId().equals(action)) {
                     ComResponse response = machineInvoker.status();
                     Response<String> resp = new Response<>();
                     resp.setId(_id);
@@ -144,7 +184,7 @@ public class SocketServer {
                     this.send(JSONUtil.beanToJson(resp));
                     return;
                 }
-                if (ActionTypeEnum.ASSIGN.name().equals(action)) {
+                if (ActionTypeEnum.上机投币.getId().equals(action)) {
                     Map data = (Map)message.get("data");
                     Response<String> resp = new Response<>();
                     resp.setId(_id);
@@ -170,7 +210,7 @@ public class SocketServer {
                     this.send(JSONUtil.beanToJson(resp));
                     return;
                 }
-                if (ActionTypeEnum.OPERATE.name().equals(action)) {
+                if (ActionTypeEnum.操控指令.getId().equals(action)) {
                     Map data = (Map)message.get("data");
                     Response<Boolean> resp = new Response<>();
                     resp.setId(_id);
@@ -218,16 +258,15 @@ public class SocketServer {
             EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
             eventBus.post(eventSetup);
-
         }
 
         @Override
         public void onError(Exception e) {
             //连接出现问题，需要开启重连模式
-            logger.error("error.");
-            EventSetup eventSetup = new EventSetup();
+            logger.error("error." + e);
+            /*EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
-            eventBus.post(eventSetup);
+            eventBus.post(eventSetup);*/
         }
 
         public void register(Object event) {
