@@ -281,8 +281,15 @@ public class VideoServer {
                     VideoStream videoStream = videoMap.get(streamName);
                     if (videoStream != null) {
                         byte[] tmp = videoStream.readStream();
-                        if (tmp != null)
-                        this.send(tmp);
+                        if (tmp != null) {
+                            if (this.isClosed()) {
+                                if (futureTask != null && !futureTask.isCancelled() && !futureTask.isDone()) {
+                                    futureTask.cancel(false);
+                                }
+                            } else {
+                                this.send(tmp);
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("" + e);
