@@ -185,7 +185,7 @@ public class StartupGui extends JFrame {
             }
         });
 
-        jButton.doClick();
+        //jButton.doClick();
 
         // 创建及设置窗口
         //设置panel的layout以及sieze

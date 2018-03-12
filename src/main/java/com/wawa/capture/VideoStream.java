@@ -19,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class VideoStream {
-    private final Logger logger = LoggerFactory.getLogger(VideoStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(VideoStream.class);
 
     private final BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(10);
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -31,17 +31,25 @@ public class VideoStream {
 
     public VideoStream(String cameraName) {
         this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" " +
-                "-r 18 " +
+                "-r 15 " +
                 "-framerate 15 " +
                 "-video_size 640x480 " +
                 "-pix_fmt yuv420p " +
                 "-c:v libx264 " +
-                "-b:v 1000k " +
-                "-bufsize 1k " +
+                "-b:v 700k " +
+                "-bf 0 " +
+                "-b_strategy 0 " +
+                "-bufsize 120k " +
                 "-rtbufsize 1k " +
                 "-vprofile baseline " +
                 "-tune zerolatency " +
+                "-i_qfactor 0.7 " +
+//                "-keyint_min 16 " +
+                "-g 25 " +
+                "-sc_threshold 0 " +
                 "-f rawvideo -";
+        /*String url = "ws://videocdn.youfubao.vip/user/15127257090664216030/53511145/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MjA4NzEzNjIuNTUsImV4cCI6MTUyOTUxMTM2Mi41NSwiaXNzIjoidXBheSIsInVzZXJfaWQiOiIxNTEyNzI1NzA5MDY2NDIxNjAzMCJ9.bJT30fXvMBGJfOLI3HJJF498MyZLwo_DiHJsaHDwqoI";
+        */
     }
 
     public void start() {
@@ -68,7 +76,7 @@ public class VideoStream {
             @Override
             public Object call() throws Exception {
                 //读取inputStream的内容
-                byte[] tmp = new byte[89120];
+                byte[] tmp = new byte[891200];
                 int len = inputStream.read(tmp, 0, tmp.length);
                 while (len > -1) {
                     if (queue.size() >= 5) {
@@ -156,7 +164,7 @@ public class VideoStream {
 
     public static void writeByteToHex(byte[] bytes) {
         if (bytes != null) {
-            System.out.println(StringUtils.bytes2HexString(bytes, bytes.length));
+            logger.info(StringUtils.bytes2HexString(bytes, bytes.length));
         }
     }
 
