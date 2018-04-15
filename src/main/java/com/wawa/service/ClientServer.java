@@ -66,7 +66,7 @@ public class ClientServer implements EventListener<String>, Receiver {
     private final ExecutorService exec = Executors.newFixedThreadPool(1);
 
     @Override
-    public ComResponse action(ComRequest request, int timeout) {
+    public ComResponse action(ComRequest request, long timeout) {
         /*final AtomicInteger flag = new AtomicInteger(1);*/
         Callable<ComResponse> callable = () -> {
             //调用完成后返回

@@ -81,9 +81,13 @@ public class SocketServer {
                         try {
                             boolean result = socketStart();
                             logger.info("restart socketServer result:" + result);
+                            if (result) {
+                                return;
+                            }
                         } catch (Exception e) {
                             logger.error("error to start socket." + e);
                         }
+                        //循环监听
                     }
                 }, 60000);
             }
@@ -121,6 +125,8 @@ public class SocketServer {
     public class SocketClient extends WebSocketClient {
 
         private final EventBus eventBus = new EventBus();
+
+        private ResultTimer resultTimer;
 
         public SocketClient(URI serverUri) {
             super(serverUri);
@@ -190,6 +196,7 @@ public class SocketServer {
                 }
                 if (ActionTypeEnum.上机投币.getId().equals(action)) {
                     Map data = (Map)message.get("data");
+                    String log_id = (String) message.get("_id");
                     Response<String> resp = new Response<>();
                     resp.setId(_id);
                     resp.setCode(0);
@@ -198,6 +205,7 @@ public class SocketServer {
                         this.send(JSONUtil.beanToJson(resp));
                         return;
                     }
+                    //todo 获得log_id,标识本次上机信息
                     C1Config c1Config = JSONUtil.jsonToBean(JSONUtil.beanToJson(data), C1Config.class);
                     //其它参数如果不填就使用默认值
                     if (c1Config.getPlaytime() < 5 || c1Config.getPlaytime() > 90) {
@@ -210,7 +218,13 @@ public class SocketServer {
                         this.send(JSONUtil.beanToJson(resp));
                         return;
                     }
+                    //投币成功，倒计时到指定时间重置
+                    if (resultTimer == null) {
+                        resultTimer = new ResultTimer(log_id, c1Config, System.currentTimeMillis());
+                        resultTimer.schedule();
+                    }
                     resp.setCode(1);
+                    resp.setData(log_id);
                     this.send(JSONUtil.beanToJson(resp));
                     return;
                 }
@@ -239,14 +253,13 @@ public class SocketServer {
                     if (comResponse == null || !Result.success.equals(comResponse.getCode())) {
                         resp.setCode(1);
                         resp.setData(false);
-                        if (needResponse)
-                        this.send(JSONUtil.beanToJson(resp));
-                        return;
+                    } else {
+                        resp.setCode(1);
+                        resp.setData(comResponse.getResult());
                     }
-                    resp.setCode(1);
-                    resp.setData(comResponse.getResult());
                     if (needResponse)
                     this.send(JSONUtil.beanToJson(resp));
+                    resetTimer();
                     return;
                 }
             } catch (Exception e) {
@@ -281,6 +294,59 @@ public class SocketServer {
             eventBus.unregister(event);
         }
 
+        public void resetTimer() {
+            if (resultTimer != null) {
+                resultTimer.cancelSchedule();
+                resultTimer = null;
+            }
+        }
+
+    }
+
+    public class ResultTimer extends TimerTask {
+        private String logId; //本次上机用户的ID
+        private C1Config config; //上机时的参数
+        private Long timestamp; //时间戳
+        private Timer timer = new Timer();
+
+        public ResultTimer(String logId, C1Config config, Long timestamp) {
+            this.logId = logId;
+            this.config = config;
+            this.timestamp = timestamp;
+        }
+
+        @Override
+        public void run() {
+            try {
+                C2Config c2Config = new C2Config();
+                ComResponse comResponse = machineInvoker.pressButton(c2Config, 8);
+                //处理回调结果
+                logger.info("operate result:" + JSONUtil.beanToJson(comResponse));
+                Response<Boolean> resp = new Response<>();
+                if (comResponse == null || !Result.success.equals(comResponse.getCode())) {
+                    resp.setCode(1);
+                    resp.setData(false);
+                } else {
+                    resp.setCode(1);
+                    resp.setData(comResponse.getResult());
+                }
+                if (socketClient != null) {
+                    socketClient.send(JSONUtil.beanToJson(resp));
+                }
+            } finally {
+                if (socketClient != null) {
+                    socketClient.resetTimer();
+                }
+            }
+        }
+
+        public void schedule() {
+            timer.schedule(this, Long.parseLong("" + (config.getPlaytime() * 1000)));
+        }
+
+        public void cancelSchedule() {
+            timer.cancel();
+        }
     }
 
     public static void main(String[] args) {
