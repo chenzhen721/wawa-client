@@ -55,44 +55,25 @@ public class SocketServer {
             }
             if (EventEnum.STARTUP == msg.getType()) {
                 socketStart();
-                //心跳
-                if (pingTimerTask == null) {
-                    pingTimerTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            logger.debug("==========>: send ping.");
-                            try {
-                                socketClient.sendPing();
-                            } catch (Exception e) {
-                                logger.error("error to ping SocketServer." + e);
-                            }
-                        }
-                    };
-                    timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
-                }
             }
             if (EventEnum.SHUTDOWN == msg.getType()) {
                 //尝试重启websocket
-                logger.info("========>尝试重新连接socket");
+                logger.info("========>60秒后尝试重新连接machine socket");
                 //服务器断开了连接，需要监听端口重启
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         try {
                             boolean result = socketStart();
-                            logger.info("restart socketServer result:" + result);
-                            if (result) {
-                                return;
-                            }
+                            logger.info("restart machine socketServer result:" + result);
                         } catch (Exception e) {
-                            logger.error("error to start socket." + e);
+                            logger.error("error to start machine socket." + e);
                         }
-                        //循环监听
                     }
                 }, 60000);
             }
         } catch (Exception e) {
-            logger.error("socket server init error." + e);
+            logger.error("machine socket server init error." + e);
         }
     }
 
@@ -114,10 +95,11 @@ public class SocketServer {
                 socketClient = new SocketClient(serverUri);
                 socketClient.register(this);
                 socketClient.connect();
+                heartBeat();
                 return true;
             }
         } catch (Exception e) {
-            logger.error("socketServer connect error." + e);
+            logger.error("machine socketServer connect error." + e);
         }
         return false;
     }
@@ -145,7 +127,7 @@ public class SocketServer {
         @Override
         public void onMessage(String s) {
             logger.info("received message." + s);
-            //todo 轮询时间点修改
+            //轮询时间点修改
             try {
                 Map<String, Object> message = JSONUtil.jsonToBean(s, mapType);
                 boolean needResponse = message.containsKey("id");
@@ -196,7 +178,7 @@ public class SocketServer {
                 }
                 if (ActionTypeEnum.上机投币.getId().equals(action)) {
                     Map data = (Map)message.get("data");
-                    String log_id = (String) message.get("_id");
+                    String log_id = (String) message.get("_id"); //本次上机分配的记录ID
                     Response<String> resp = new Response<>();
                     resp.setId(_id);
                     resp.setCode(0);
@@ -205,7 +187,6 @@ public class SocketServer {
                         this.send(JSONUtil.beanToJson(resp));
                         return;
                     }
-                    //todo 获得log_id,标识本次上机信息
                     C1Config c1Config = JSONUtil.jsonToBean(JSONUtil.beanToJson(data), C1Config.class);
                     //其它参数如果不填就使用默认值
                     if (c1Config.getPlaytime() < 5 || c1Config.getPlaytime() > 90) {
@@ -271,7 +252,7 @@ public class SocketServer {
         @Override
         public void onClose(int i, String s, boolean b) {
             //发送通知 断线重连
-            logger.info("close.i:" + i + ", s:" + s + ", b:" + b);
+            logger.info("machine socket server on close.i:" + i + ", s:" + s + ", b:" + b);
             EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
             eventBus.post(eventSetup);
@@ -280,7 +261,7 @@ public class SocketServer {
         @Override
         public void onError(Exception e) {
             //连接出现问题，需要开启重连模式
-            logger.error("error." + e);
+            logger.error("machine socket error." + e.getMessage());
             /*EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
             eventBus.post(eventSetup);*/
@@ -341,11 +322,31 @@ public class SocketServer {
         }
 
         public void schedule() {
-            timer.schedule(this, Long.parseLong("" + (config.getPlaytime() * 1000)));
+            timer.schedule(this, Long.parseLong("" + ((config.getPlaytime() + 5) * 1000)));
         }
 
         public void cancelSchedule() {
             timer.cancel();
+        }
+    }
+
+    private void heartBeat() {
+        //心跳
+        if (pingTimerTask == null) {
+            pingTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        if (socketClient != null && !socketClient.isClosed()) {
+                            logger.debug("==========>: machine socket send ping.");
+                            socketClient.sendPing();
+                        }
+                    } catch (Exception e) {
+                        logger.error("error to ping SocketServer." + e);
+                    }
+                }
+            };
+            timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
         }
     }
 
