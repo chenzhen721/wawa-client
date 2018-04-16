@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -67,13 +68,13 @@ public class SocketServer {
                             boolean result = socketStart();
                             logger.info("restart machine socketServer result:" + result);
                         } catch (Exception e) {
-                            logger.error("error to start machine socket." + e);
+                            logger.error("error to start machine socket.", e);
                         }
                     }
                 }, 60000);
             }
         } catch (Exception e) {
-            logger.error("machine socket server init error." + e);
+            logger.error("machine socket server init error.", e);
         }
     }
 
@@ -89,7 +90,7 @@ public class SocketServer {
                 try {
                     serverUri = new URI(prop.getProperty("server.uri") + "?device_id=" + prop.getProperty("device.id"));
                 } catch (URISyntaxException e) {
-                    logger.error("error uri." + prop.getProperty("server.uri"));
+                    logger.error("error uri." + prop.getProperty("server.uri"), e);
                     return false;
                 }
                 socketClient = new SocketClient(serverUri);
@@ -99,7 +100,7 @@ public class SocketServer {
                 return true;
             }
         } catch (Exception e) {
-            logger.error("machine socketServer connect error." + e);
+            logger.error("machine socketServer connect error.", e);
         }
         return false;
     }
@@ -244,7 +245,7 @@ public class SocketServer {
                     return;
                 }
             } catch (Exception e) {
-                logger.info("illigal message:" + s + ", exception:" + e);
+                logger.info("illigal message:" + s, e);
             }
             logger.error("error accur while received message:" + s);
         }
@@ -296,21 +297,14 @@ public class SocketServer {
         @Override
         public void run() {
             try {
-                C2Config c2Config = new C2Config();
-                ComResponse comResponse = machineInvoker.pressButton(c2Config, 8);
-                //处理回调结果
-                logger.info("operate result:" + JSONUtil.beanToJson(comResponse));
-                Response<Boolean> resp = new Response<>();
-                if (comResponse == null || !Result.success.equals(comResponse.getCode())) {
-                    resp.setCode(1);
-                    resp.setData(false);
-                } else {
-                    resp.setCode(1);
-                    resp.setData(comResponse.getResult());
-                }
-                if (socketClient != null) {
-                    socketClient.send(JSONUtil.beanToJson(resp));
-                }
+                Map<String, Object> req = new HashMap<>();
+                req.put("id", System.currentTimeMillis());
+                req.put("action", ActionTypeEnum.操控指令.getId());
+                Map<String, Object> op = new HashMap<>();
+                req.put("data", op);
+                op.put("doll", 1);
+                op.put("direction", 8);
+                socketClient.onMessage(JSONUtil.beanToJson(req));
             } catch (Exception e) {
                 logger.error("auto get result by timeout.", e);
             } finally {
@@ -341,7 +335,7 @@ public class SocketServer {
                             socketClient.sendPing();
                         }
                     } catch (Exception e) {
-                        logger.error("error to ping SocketServer." + e);
+                        logger.error("error to ping SocketServer.", e);
                     }
                 }
             };

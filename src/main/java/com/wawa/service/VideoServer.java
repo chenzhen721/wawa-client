@@ -64,7 +64,7 @@ public class VideoServer {
                             boolean result = socketStart();
                             logger.info("restart videoServer socket result:" + result);
                         } catch (Exception e) {
-                            logger.error("error to start videoServer socket." + e);
+                            logger.error("error to start videoServer socket.", e);
                         }
                     }
                 }, 60000);
@@ -96,7 +96,7 @@ public class VideoServer {
                 }
             }
         } catch (Exception e) {
-            logger.error("failed to open videoServer video," + e);
+            logger.error("failed to open videoServer video.", e);
         }
     }
 
@@ -115,7 +115,7 @@ public class VideoServer {
                             serverUri = new URI(prop.getProperty("stream.uri") +
                                     "?device_id=" + prop.getProperty("device.id") + "&stream=" + i);
                         } catch (URISyntaxException e) {
-                            logger.error("error uri." + prop.getProperty("stream.uri"));
+                            logger.error("error uri." + prop.getProperty("stream.uri"), e);
                             return false;
                         }
                         if (videoSocketClient == null) {
@@ -136,7 +136,7 @@ public class VideoServer {
             heartBeat();
             return true;
         } catch (Exception e) {
-            logger.error("failed to open videoServer socket," + e);
+            logger.error("failed to open videoServer socket.", e);
         }
         return false;
     }
@@ -223,7 +223,7 @@ public class VideoServer {
                     return;
                 }
             } catch (Exception e) {
-                logger.info("illigal message:" + s + ", exception:" + e);
+                logger.info("illigal message:" + s, e);
             }
             logger.error("error accur while received message:" + s);
         }
@@ -253,7 +253,7 @@ public class VideoServer {
         @Override
         public void onError(Exception e) {
             // 连接出现问题
-            logger.error("error." + e);
+            logger.error("error.", e);
             /*EventSetup eventSetup = new EventSetup();
             eventSetup.setType(EventEnum.SHUTDOWN);
             eventBus.post(eventSetup);*/
@@ -293,7 +293,7 @@ public class VideoServer {
                                 client.sendPing();
                             }
                         } catch (Exception e) {
-                            logger.error("error to ping VideoServer." + e);
+                            logger.error("error to ping VideoServer.", e);
                         }
                     }
                 }
