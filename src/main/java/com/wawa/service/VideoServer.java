@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.NotYetConnectedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -235,16 +234,16 @@ public class VideoServer {
         public void onClose(int i, String s, boolean b) {
             //发送通知 断线重连
             logger.info("video server on close.i:" + i + ", s:" + s + ", b:" + b);
-            if (i != 1000 && i != 1001) {
-                for (Map.Entry<String, VideoSocketClient> entry : videoSocketMap.entrySet()) {
-                    VideoSocketClient videoSocketClient = videoSocketMap.remove(entry.getKey());
-                    if (videoSocketClient != null) {
-                        FutureTask futureTask = videoSocketClient.futureTask;
-                        if (futureTask != null && !futureTask.isCancelled()) {
-                            futureTask.cancel(true);
-                        }
+            for (Map.Entry<String, VideoSocketClient> entry : videoSocketMap.entrySet()) {
+                VideoSocketClient videoSocketClient = videoSocketMap.remove(entry.getKey());
+                if (videoSocketClient != null) {
+                    FutureTask futureTask = videoSocketClient.futureTask;
+                    if (futureTask != null && !futureTask.isCancelled()) {
+                        futureTask.cancel(true);
                     }
                 }
+            }
+            if (i != 1000 && i != 1001) {
                 EventSetup eventSetup = new EventSetup();
                 eventSetup.setType(EventEnum.SHUTDOWN);
                 eventBus.post(eventSetup);
@@ -262,26 +261,22 @@ public class VideoServer {
         }
 
         public void sendStream() {
-                try {
-                    VideoStream videoStream = videoMap.get(streamName);
-                    if (videoStream != null) {
-                        byte[] tmp = videoStream.readStream();
-                        if (tmp != null) {
-                            if (this.isClosed()) {
-                                if (futureTask != null && !futureTask.isCancelled() && !futureTask.isDone()) {
-                                    futureTask.cancel(false);
-                                }
-                            } else {
-                                this.send(tmp);
-                            }
+            try {
+                VideoStream videoStream = videoMap.get(streamName);
+                if (videoStream != null) {
+                    byte[] tmp = videoStream.readStream();
+                    if (tmp != null) {
+                        if (!this.isClosed()) {
+                            this.send(tmp);
                         }
                     }
-                } catch (Exception e) {
-                    logger.error("send failed." + e.getMessage());
-                    if (this.isClosed()) {
-                        onClose(CloseFrame.ABNORMAL_CLOSE, "self killing", true);
-                    }
                 }
+            } catch (Exception e) {
+                logger.error("send failed." + e.getMessage());
+                if (this.isClosed()) {
+                    onClose(CloseFrame.ABNORMAL_CLOSE, "self killing", true);
+                }
+            }
         }
     }
 

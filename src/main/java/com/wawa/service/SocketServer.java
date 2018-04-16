@@ -262,9 +262,6 @@ public class SocketServer {
         public void onError(Exception e) {
             //连接出现问题，需要开启重连模式
             logger.error("machine socket error." + e.getMessage());
-            /*EventSetup eventSetup = new EventSetup();
-            eventSetup.setType(EventEnum.SHUTDOWN);
-            eventBus.post(eventSetup);*/
         }
 
         public void register(Object event) {
@@ -314,6 +311,8 @@ public class SocketServer {
                 if (socketClient != null) {
                     socketClient.send(JSONUtil.beanToJson(resp));
                 }
+            } catch (Exception e) {
+                logger.error(e.getMessage());
             } finally {
                 if (socketClient != null) {
                     socketClient.resetTimer();

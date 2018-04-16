@@ -5,7 +5,10 @@ import com.wawa.common.component.EventObserver;
 import com.wawa.common.utils.StringUtils;
 import com.wawa.common.serialport.component.ReceiveDataListener;
 import com.wawa.common.serialport.component.ReceiveDataObserver;
+import com.wawa.service.ClientServer;
 import gnu.io.SerialPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -15,6 +18,7 @@ import static com.wawa.common.utils.StringUtils.bytes2HexString;
 import static com.wawa.common.utils.StringUtils.hexStringToBytes;
 
 public class ComPort extends ReceiveDataObserver {
+    private final static Logger logger = LoggerFactory.getLogger(ComPort.class);
     static {
         System.out.println(System.getProperty("java.library.path"));
     }
@@ -61,12 +65,12 @@ public class ComPort extends ReceiveDataObserver {
 
     public boolean start() {
         try {
-            System.out.println(SerialTool.findPort());
+            //System.out.println(SerialTool.findPort());
             if (mSerialPort == null) {
                 try {
                     mSerialPort = SerialTool.openPort(this.portName, this.baudrate);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("error to open serialPort:" + this.portName + ", " + e);
                     return false;
                 }
             }
@@ -77,7 +81,7 @@ public class ComPort extends ReceiveDataObserver {
             executor.execute(futureTask);
             return true;
         } catch (SecurityException e) {
-            e.printStackTrace();
+            logger.error("comport start failed." + e.getMessage());
         }
         return false;
     }
@@ -85,13 +89,13 @@ public class ComPort extends ReceiveDataObserver {
 
     public boolean sendData(byte[] buffer) {
         try {
-            System.out.println(System.currentTimeMillis() - time + ":距离上次请求的时间间隔");
+            logger.debug(System.currentTimeMillis() - time + ":距离上次请求的时间间隔");
             time = System.currentTimeMillis();
-            System.out.println("send:" + StringUtils.bytes2HexString(buffer));
+            logger.debug("send:" + StringUtils.bytes2HexString(buffer));
             SerialTool.sendToPort(mSerialPort, buffer);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Com sendData failed." + e.getMessage());
         }
         return false;
     }
@@ -100,10 +104,10 @@ public class ComPort extends ReceiveDataObserver {
     public static Long time = System.currentTimeMillis();
     private synchronized void onDataReceived(byte[] buffer) {
         Long delta = System.currentTimeMillis() - time;
-        System.out.println(delta + " :" + " ##### " + bytes2HexString(buffer));
+        logger.info(delta + "ms ," + " revieve: " + bytes2HexString(buffer));
         readBuffer += bytes2HexString(buffer);
         if (buffer.length < 6) {
-            System.out.println("接收数据不合法，需要记录日志");
+            logger.debug("接收数据不合法，需要记录日志");
             return;
         }
         //指令一共6位
@@ -114,13 +118,13 @@ public class ComPort extends ReceiveDataObserver {
                 String msg = readBuffer.substring(0, 6 * 2);
                 readBuffer = readBuffer.substring(6 * 2);
                 if ("E0".equals(msg.substring(4, 6))) {
-                    System.out.println("不支持的命令");
+                    logger.error("不支持的命令:" + msg);
                 }
                 if ("E1".equals(msg.substring(4, 6))) {
-                    System.out.println("输入的数据校验出错");
+                    logger.error("输入的数据校验出错" + msg);
                 }
                 if (!check_sum_data(hexStringToBytes(msg))) {
-                    System.out.println("接受数据校验不合法");
+                    logger.error("接受数据校验不合法" + msg);
                 }
                 receiveDataObserver.fireEvent(new Event<>(msg));
             } else {
@@ -147,15 +151,12 @@ public class ComPort extends ReceiveDataObserver {
                 mSerialPort = null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Serial destroy failed." + e.getMessage());
         }
     }
 
-    public static boolean check_sum_data(byte[] data) {
-        if (StringUtils.sum_data(data, data.length - 1) != data[data.length - 1]) {
-            return false;
-        }
-        return true;
+    private static boolean check_sum_data(byte[] data) {
+        return StringUtils.sum_data(data, data.length - 1) == data[data.length - 1];
     }
 
     public static void main(String[] args) {

@@ -7,6 +7,8 @@ import com.wawa.common.utils.StringUtils;
 import com.wawa.model.ComRequest;
 import com.wawa.model.ComResponse;
 import com.wawa.common.serialport.ComPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 public class ClientServer implements EventListener<String>, Receiver {
+    private final static Logger logger = LoggerFactory.getLogger(ClientServer.class);
     private static BlockingQueue<ComResponse> respQueue = new LinkedBlockingQueue<>();
     private ComPort comPort;
     private TokenServer tokenServer;
@@ -55,8 +58,9 @@ public class ClientServer implements EventListener<String>, Receiver {
     public void onActive(Event<String> msg) {
         //组装event， 放入respQueue中
         byte[] bytes = StringUtils.hexStringToBytes(msg.getMsg());
-        if (StringUtils.sum_data(bytes, bytes.length - 2) != bytes[bytes.length - 1]) {
-            System.out.println("error"); //
+        byte sum_data = StringUtils.sum_data(bytes, bytes.length - 2);
+        if (sum_data != bytes[bytes.length - 1]) {
+            logger.error("sum_data error.receive:" + bytes[bytes.length - 1] + ", actual:" + sum_data);
         }
         ComResponse comResponse = new ComResponse();
         comResponse.create(bytes);
@@ -74,7 +78,7 @@ public class ClientServer implements EventListener<String>, Receiver {
             if (tokenServer.apply()) {
                 boolean isSend = comPort.sendData(request.toArray());
                 if (!isSend) {
-                    System.out.println("send data fail.");
+                    logger.error("send data fail. request" + StringUtils.bytes2HexString(request.toArray()));
                     return null;
                 }
                 ComResponse response;
@@ -95,7 +99,7 @@ public class ClientServer implements EventListener<String>, Receiver {
         try {
             return future.get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException|ExecutionException|TimeoutException e) {
-            e.printStackTrace();
+            logger.error("action timeout:" + e.getMessage());
         }
         //超时
         return null;
