@@ -78,28 +78,35 @@ public class MachineInvoker {
     }
 
     public ComResponse start(C1Config c1Config) {
-        boolean step = currentStep.compareAndSet(0, 1);
-        if (!step) {
-            ComResponse comResponse = new ComResponse();
-            comResponse.setCode(Result.fail);
-            return comResponse;
-        }
-        ComRequest request = c1Command.create(c1Config);
-        ComResponse comResponse = c1Command.execute(request);
-        if (isMock != null && isMock) {
-            comResponse = mockSuccess();
-        }
+        ComResponse comResponse;
         int update = 0;
-        if (!Result.success.equals(comResponse.getCode())) {
-            if (Result.operating.equals(comResponse.getCode())) {
-                update = 2;
+        try {
+            boolean step = currentStep.compareAndSet(0, 1);
+            if (!step) {
+                comResponse = new ComResponse();
+                comResponse.setCode(Result.fail);
+                return comResponse;
             }
-            comResponse.setCode(Result.fail);
-        } else {
-            update = 2;
-            comResponse.setCode(Result.success);
+            ComRequest request = c1Command.create(c1Config);
+            comResponse = c1Command.execute(request);
+            if (isMock != null && isMock) {
+                comResponse = mockSuccess();
+            }
+            if (!Result.success.equals(comResponse.getCode())) {
+                if (Result.operating.equals(comResponse.getCode())) {
+                    update = 2;
+                }
+                comResponse.setCode(Result.fail);
+            } else {
+                update = 2;
+                comResponse.setCode(Result.success);
+            }
+            currentStep.compareAndSet(1, update);
+        } finally {
+            if (currentStep.get() == 1) {
+                currentStep.compareAndSet(1, update);
+            }
         }
-        currentStep.compareAndSet(1, update);
         return comResponse;
     }
 
@@ -110,34 +117,45 @@ public class MachineInvoker {
      * @return
      */
     public ComResponse pressButton(C2Config c2Config, int direction) {
-        if (currentStep.get() != 2 && !isMock) {
+        if (currentStep.get() < 2 && !isMock) {
             ComResponse comResponse = new ComResponse();
             comResponse.setCode(Result.waitingConfig);
             return comResponse;
         }
-        switch (direction) {
-            case 0:
-                break;
-            case 1:
-                c2Config.setFBtime(0 - c2Config.getFBtime());
-                break;
-            case 2:
-                c2Config.setLRtime(0 - c2Config.getLRtime());
-                break;
-            case 3:
-                break;
-            case 8:
-                c2Config.setDoll(1);
-                break;
+        if (currentStep.get() == 2 || (currentStep.get() == 3 && direction == 8)) {
+            switch (direction) {
+                case 0:
+                    break;
+                case 1:
+                    c2Config.setFBtime(0 - c2Config.getFBtime());
+                    break;
+                case 2:
+                    c2Config.setLRtime(0 - c2Config.getLRtime());
+                    break;
+                case 3:
+                    break;
+                case 8:
+                    c2Config.setDoll(1);
+                    break;
+            }
+            ComResponse comResponse = null;
+            if (currentStep.get() == 2 || (direction == 8 && currentStep.compareAndSet(2, 3))) {
+                comResponse = c2Command.execute(c2Command.create(c2Config));
+            } else if (currentStep.get() == 3){
+                comResponse = c2Command.waitForResult();
+            }
+            if (isMock != null && isMock) {
+                comResponse = mockSuccess();
+                return comResponse;
+            }
+            if (comResponse != null) {
+                if (direction == 8 || Result.waitingConfig.equals(comResponse.getCode())) {
+                    currentStep.compareAndSet(3, 0);
+                }
+                return comResponse;
+            }
         }
-        ComResponse comResponse = c2Command.execute(c2Command.create(c2Config));
-        if (isMock != null && isMock) {
-            comResponse = mockSuccess();
-        }
-        if (direction == 8 || Result.waitingConfig.equals(comResponse.getCode())) {
-            currentStep.compareAndSet(2, 0);
-        }
-        return comResponse;
+        return null;
     }
 
     /**

@@ -10,6 +10,7 @@ import com.wawa.model.ComResponse;
  * 查询机器状态接口: FF55C00000000000000000
  */
 public class C0Command implements Command {
+    private static final int action_timeout = 500;
     public static final String command = "C0";
 
     private Receiver receiver;
@@ -21,7 +22,7 @@ public class C0Command implements Command {
 
     @Override
     public ComResponse execute(ComRequest comRequest) {
-            ComResponse comResponse = receiver.action(C0Command.comRequest, 500);
+            ComResponse comResponse = receiver.action(C0Command.comRequest, action_timeout);
             if (comResponse == null) {
                 comResponse = new ComResponse();
             }

@@ -12,6 +12,7 @@ import com.wawa.model.EventEnum;
 import com.wawa.model.EventSetup;
 import org.apache.commons.lang.StringUtils;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,27 +53,10 @@ public class VideoServer {
             if (EventEnum.STARTUP == msg.getType()) {
                 videoStart();
                 socketStart();
-                //心跳
-                if (pingTimerTask == null) {
-                    pingTimerTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            logger.debug("==========>: send ping.");
-                            for (WebSocketClient client : videoSocketMap.values()) {
-                                try {
-                                    client.sendPing();
-                                } catch (Exception e) {
-                                    logger.error("error to ping VideoServer." + e);
-                                }
-                            }
-                        }
-                    };
-                    timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
-                }
             }
             if (EventEnum.SHUTDOWN == msg.getType()) {
                 //尝试重启websocket
-                logger.info("========>尝试重新连接socket");
+                logger.info("========> 60秒后尝试重新连接video socket");
                 //服务器断开了连接，需要监听端口重启
                 timer.schedule(new TimerTask() {
                     @Override
@@ -87,7 +71,7 @@ public class VideoServer {
                 }, 60000);
             }
         } catch (Exception e) {
-            logger.error("" + e);
+            logger.error("video server listener error." + e.getMessage());
         }
     }
 
@@ -150,6 +134,7 @@ public class VideoServer {
                     }
                 }
             }
+            heartBeat();
             return true;
         } catch (Exception e) {
             logger.error("failed to open videoServer socket," + e);
@@ -249,7 +234,7 @@ public class VideoServer {
         @Override
         public void onClose(int i, String s, boolean b) {
             //发送通知 断线重连
-            logger.info("close.i:" + i + ", s:" + s + ", b:" + b);
+            logger.info("video server on close.i:" + i + ", s:" + s + ", b:" + b);
             if (i != 1000 && i != 1001) {
                 for (Map.Entry<String, VideoSocketClient> entry : videoSocketMap.entrySet()) {
                     VideoSocketClient videoSocketClient = videoSocketMap.remove(entry.getKey());
@@ -292,9 +277,33 @@ public class VideoServer {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("" + e);
+                    logger.error("send failed." + e.getMessage());
+                    if (this.isClosed()) {
+                        onClose(CloseFrame.ABNORMAL_CLOSE, "self killing", true);
+                    }
                 }
         }
+    }
 
+    private void heartBeat() {
+        //心跳
+        if (pingTimerTask == null) {
+            pingTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    for (WebSocketClient client : videoSocketMap.values()) {
+                        try {
+                            if (client != null && !client.isClosed()) {
+                                logger.debug("video socket " + client.getResourceDescriptor() + " send ping.");
+                                client.sendPing();
+                            }
+                        } catch (Exception e) {
+                            logger.error("error to ping VideoServer." + e);
+                        }
+                    }
+                }
+            };
+            timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
+        }
     }
 }
