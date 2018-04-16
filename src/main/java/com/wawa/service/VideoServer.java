@@ -70,7 +70,7 @@ public class VideoServer {
                 }, 60000);
             }
         } catch (Exception e) {
-            logger.error("video server listener error." + e.getMessage());
+            logger.error("video server listener error.", e);
         }
     }
 
@@ -272,7 +272,7 @@ public class VideoServer {
                     }
                 }
             } catch (Exception e) {
-                logger.error("send failed." + e.getMessage());
+                logger.error("send failed.", e);
                 if (this.isClosed()) {
                     onClose(CloseFrame.ABNORMAL_CLOSE, "self killing", true);
                 }

@@ -99,7 +99,7 @@ public class ClientServer implements EventListener<String>, Receiver {
         try {
             return future.get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException|ExecutionException|TimeoutException e) {
-            logger.error("action timeout:" + e.getMessage());
+            logger.error("action timeout.", e);
         }
         //超时
         return null;

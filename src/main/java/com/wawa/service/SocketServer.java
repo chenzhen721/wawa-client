@@ -261,7 +261,7 @@ public class SocketServer {
         @Override
         public void onError(Exception e) {
             //连接出现问题，需要开启重连模式
-            logger.error("machine socket error." + e.getMessage());
+            logger.error("machine socket error.", e);
         }
 
         public void register(Object event) {
@@ -312,7 +312,7 @@ public class SocketServer {
                     socketClient.send(JSONUtil.beanToJson(resp));
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                logger.error("auto get result by timeout.", e);
             } finally {
                 if (socketClient != null) {
                     socketClient.resetTimer();

@@ -43,7 +43,7 @@ public class ComPort extends ReceiveDataObserver {
                     }
                     Thread.sleep(20);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("serial port read error.", e);
                 }
             }
         }
@@ -70,18 +70,17 @@ public class ComPort extends ReceiveDataObserver {
                 try {
                     mSerialPort = SerialTool.openPort(this.portName, this.baudrate);
                 } catch (Exception e) {
-                    logger.error("error to open serialPort:" + this.portName + ", " + e);
+                    logger.error("error to open serialPort:" + this.portName, e);
                     return false;
                 }
             }
-
 			/* Create a receiving thread */
             ReadThread mReadThread = new ReadThread();
             FutureTask<String> futureTask = new FutureTask<>(mReadThread, "");
             executor.execute(futureTask);
             return true;
         } catch (SecurityException e) {
-            logger.error("comport start failed." + e.getMessage());
+            logger.error("comport start failed.", e);
         }
         return false;
     }
@@ -95,7 +94,7 @@ public class ComPort extends ReceiveDataObserver {
             SerialTool.sendToPort(mSerialPort, buffer);
             return true;
         } catch (Exception e) {
-            logger.error("Com sendData failed." + e.getMessage());
+            logger.error("Com sendData failed.", e);
         }
         return false;
     }
@@ -151,7 +150,7 @@ public class ComPort extends ReceiveDataObserver {
                 mSerialPort = null;
             }
         } catch (Exception e) {
-            logger.error("Serial destroy failed." + e.getMessage());
+            logger.error("Serial destroy failed.", e);
         }
     }
 
