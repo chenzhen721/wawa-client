@@ -254,10 +254,6 @@ public class VideoServer {
         public void onError(Exception e) {
             // 连接出现问题
             logger.error("error.", e);
-            /*EventSetup eventSetup = new EventSetup();
-            eventSetup.setType(EventEnum.SHUTDOWN);
-            eventBus.post(eventSetup);*/
-
         }
 
         public void sendStream() {

@@ -14,6 +14,7 @@ import com.wawa.model.C2Config;
 import com.wawa.model.ComResponse;
 import com.wawa.model.EventEnum;
 import com.wawa.model.EventSetup;
+import com.wawa.model.ActionResult;
 import com.wawa.model.Response;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -160,12 +161,15 @@ public class SocketServer {
                     return;
                 }
 
+                Response<ActionResult> resp = new Response<>();
+                resp.setId(_id);
+                resp.setCode(1);
+                ActionResult actionResult = new ActionResult();
+                resp.setData(actionResult);
                 //查询机器状态
                 if (ActionTypeEnum.机器状态.getId().equals(action)) {
                     ComResponse response = machineInvoker.status();
-                    Response<String> resp = new Response<>();
-                    resp.setId(_id);
-                    resp.setCode(1);
+                    actionResult.setAction_type(ActionTypeEnum.机器状态.getId());
                     String data = "2";
                     if (Result.success.equals(response.getCode())) {
                         data = "0";
@@ -173,15 +177,13 @@ public class SocketServer {
                     if (Result.busy.equals(response.getCode())) {
                         data = "1";
                     }
-                    resp.setData(data);
+                    actionResult.setResult(data);
                     this.send(JSONUtil.beanToJson(resp));
                     return;
                 }
                 if (ActionTypeEnum.上机投币.getId().equals(action)) {
                     Map data = (Map)message.get("data");
                     String log_id = (String) message.get("_id"); //本次上机分配的记录ID
-                    Response<String> resp = new Response<>();
-                    resp.setId(_id);
                     resp.setCode(0);
                     //初始化c1config
                     if (data == null) {
@@ -206,14 +208,12 @@ public class SocketServer {
                         resultTimer.schedule();
                     }
                     resp.setCode(1);
-                    resp.setData(log_id);
+                    actionResult.setLog_id(log_id);
                     this.send(JSONUtil.beanToJson(resp));
                     return;
                 }
                 if (ActionTypeEnum.操控指令.getId().equals(action)) {
                     Map data = (Map)message.get("data");
-                    Response<Boolean> resp = new Response<>();
-                    resp.setId(_id);
                     resp.setCode(0);
                     //初始化c1config
                     if (data == null || !data.containsKey("direction") ||
@@ -222,6 +222,7 @@ public class SocketServer {
                         this.send(JSONUtil.beanToJson(resp));
                         return;
                     }
+                    int direction = (int) data.get("direction");
                     C2Config c2Config = new C2Config();
                     if (data.containsKey("FBtime")) {
                         c2Config.setFBtime((int)data.get("FBtime"));
@@ -229,19 +230,22 @@ public class SocketServer {
                     if (data.containsKey("LRtime")) {
                         c2Config.setFBtime((int)data.get("LRtime"));
                     }
-                    ComResponse comResponse = machineInvoker.pressButton(c2Config, (int)data.get("direction"));
+                    ComResponse comResponse = machineInvoker.pressButton(c2Config, direction);
                     //处理回调结果
-                    logger.info("operate result:" + JSONUtil.beanToJson(comResponse));
+                    logger.info("operate:" + s + ", result:" + JSONUtil.beanToJson(comResponse));
+                    resp.setCode(1);
+                    actionResult.setLog_id(resultTimer.getLogId());
                     if (comResponse == null || !Result.success.equals(comResponse.getCode())) {
-                        resp.setCode(1);
-                        resp.setData(false);
+                        actionResult.setResult(Boolean.FALSE.toString());
                     } else {
-                        resp.setCode(1);
-                        resp.setData(comResponse.getResult());
+                        actionResult.setResult(comResponse.getResult().toString());
                     }
-                    if (needResponse)
-                    this.send(JSONUtil.beanToJson(resp));
-                    resetTimer();
+                    if (needResponse) {
+                        this.send(JSONUtil.beanToJson(resp));
+                    }
+                    if (8 == direction) {
+                        resetTimer();
+                    }
                     return;
                 }
             } catch (Exception e) {
@@ -307,10 +311,6 @@ public class SocketServer {
                 socketClient.onMessage(JSONUtil.beanToJson(req));
             } catch (Exception e) {
                 logger.error("auto get result by timeout.", e);
-            } finally {
-                if (socketClient != null) {
-                    socketClient.resetTimer();
-                }
             }
         }
 
@@ -320,6 +320,38 @@ public class SocketServer {
 
         public void cancelSchedule() {
             timer.cancel();
+        }
+
+        public String getLogId() {
+            return logId;
+        }
+
+        public void setLogId(String logId) {
+            this.logId = logId;
+        }
+
+        public C1Config getConfig() {
+            return config;
+        }
+
+        public void setConfig(C1Config config) {
+            this.config = config;
+        }
+
+        public Long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(Long timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public Timer getTimer() {
+            return timer;
+        }
+
+        public void setTimer(Timer timer) {
+            this.timer = timer;
         }
     }
 
