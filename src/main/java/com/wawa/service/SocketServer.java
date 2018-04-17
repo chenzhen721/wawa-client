@@ -2,6 +2,7 @@ package com.wawa.service;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.wawa.Main;
@@ -28,11 +29,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
 
 public class SocketServer {
     private final static Logger logger = LoggerFactory.getLogger(SocketServer.class);
     public static final TypeFactory typeFactory = TypeFactory.defaultInstance();
     private static JavaType mapType = typeFactory.constructMapType(Map.class, String.class, Object.class);
+    private final AsyncEventBus eventBus = new AsyncEventBus(Executors.newCachedThreadPool());
     private MachineInvoker machineInvoker;
     private SocketClient socketClient;
     private Timer timer = new Timer();
@@ -60,7 +63,7 @@ public class SocketServer {
             }
             if (EventEnum.SHUTDOWN == msg.getType()) {
                 //尝试重启websocket
-                logger.info("========>60秒后尝试重新连接machine socket");
+                logger.info("========>30秒后尝试重新连接machine socket");
                 //服务器断开了连接，需要监听端口重启
                 timer.schedule(new TimerTask() {
                     @Override
@@ -72,7 +75,7 @@ public class SocketServer {
                             logger.error("error to start machine socket.", e);
                         }
                     }
-                }, 60000);
+                }, 30000);
             }
         } catch (Exception e) {
             logger.error("machine socket server init error.", e);
@@ -95,7 +98,7 @@ public class SocketServer {
                     return false;
                 }
                 socketClient = new SocketClient(serverUri);
-                socketClient.register(this);
+                register(this);
                 socketClient.connect();
                 heartBeat();
                 return true;
@@ -108,7 +111,7 @@ public class SocketServer {
 
     public class SocketClient extends WebSocketClient {
 
-        private final EventBus eventBus = new EventBus();
+//        private final EventBus eventBus = new EventBus();
 
         private ResultTimer resultTimer;
 
@@ -166,10 +169,10 @@ public class SocketServer {
                 resp.setCode(1);
                 ActionResult actionResult = new ActionResult();
                 resp.setData(actionResult);
+                actionResult.setAction_type(action);
                 //查询机器状态
                 if (ActionTypeEnum.机器状态.getId().equals(action)) {
                     ComResponse response = machineInvoker.status();
-                    actionResult.setAction_type(ActionTypeEnum.机器状态.getId());
                     String data = "2";
                     if (Result.success.equals(response.getCode())) {
                         data = "0";
@@ -269,13 +272,13 @@ public class SocketServer {
             logger.error("machine socket error.", e);
         }
 
-        public void register(Object event) {
+        /*public void register(Object event) {
             eventBus.register(event);
         }
 
         public void unregister(Object event) {
             eventBus.unregister(event);
-        }
+        }*/
 
         public void resetTimer() {
             if (resultTimer != null) {
@@ -373,6 +376,14 @@ public class SocketServer {
             };
             timer.scheduleAtFixedRate(pingTimerTask, 60000, 60000);
         }
+    }
+
+    public void register(Object event) {
+        eventBus.register(event);
+    }
+
+    public void unregister(Object event) {
+        eventBus.unregister(event);
     }
 
     public static void main(String[] args) {

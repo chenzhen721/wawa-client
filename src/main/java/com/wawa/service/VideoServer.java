@@ -55,7 +55,7 @@ public class VideoServer {
             }
             if (EventEnum.SHUTDOWN == msg.getType()) {
                 //尝试重启websocket
-                logger.info("========> 60秒后尝试重新连接video socket");
+                logger.info("========> 30秒后尝试重新连接video socket");
                 //服务器断开了连接，需要监听端口重启
                 timer.schedule(new TimerTask() {
                     @Override
@@ -67,7 +67,7 @@ public class VideoServer {
                             logger.error("error to start videoServer socket.", e);
                         }
                     }
-                }, 60000);
+                }, 30000);
             }
         } catch (Exception e) {
             logger.error("video server listener error.", e);
@@ -243,11 +243,11 @@ public class VideoServer {
                     }
                 }
             }
-            if (i != 1000 && i != 1001) {
-                EventSetup eventSetup = new EventSetup();
-                eventSetup.setType(EventEnum.SHUTDOWN);
-                eventBus.post(eventSetup);
-            }
+            //if (i != 1000 && i != 1001) {
+            EventSetup eventSetup = new EventSetup();
+            eventSetup.setType(EventEnum.SHUTDOWN);
+            eventBus.post(eventSetup);
+            //}
         }
 
         @Override

@@ -139,13 +139,16 @@ public class MachineInvoker {
                     break;
             }
             ComResponse comResponse = null;
-            if (currentStep.get() == 2 || (direction == 8 && currentStep.compareAndSet(2, 3))) {
+            if ((direction == 8 && currentStep.compareAndSet(2, 3)) || currentStep.get() == 2) {
                 comResponse = c2Command.execute(c2Command.create(c2Config));
             } else if (currentStep.get() == 3){
                 comResponse = c2Command.waitForResult();
             }
             if (isMock != null && isMock) {
                 comResponse = mockSuccess();
+                if (direction == 8 || Result.waitingConfig.equals(comResponse.getCode())) {
+                    currentStep.compareAndSet(3, 0);
+                }
                 return comResponse;
             }
             if (comResponse != null) {
