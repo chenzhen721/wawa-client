@@ -85,7 +85,7 @@ public class ClientServer implements EventListener<String>, Receiver {
                 while (true) {
                     response = respQueue.poll(timeout, TimeUnit.MILLISECONDS);
                     if (response.getCommand() != request.getCommand()) {
-                        System.out.println("不是本次请求结果，丢弃！");
+                        logger.info("不是本次请求结果，丢弃！");
                         continue;
                     }
                     break;

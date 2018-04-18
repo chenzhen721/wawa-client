@@ -90,7 +90,7 @@ public class ComPort extends ReceiveDataObserver {
         try {
             logger.debug(System.currentTimeMillis() - time + ":距离上次请求的时间间隔");
             time = System.currentTimeMillis();
-            logger.debug("send:" + StringUtils.bytes2HexString(buffer));
+            logger.info("send:" + StringUtils.bytes2HexString(buffer));
             SerialTool.sendToPort(mSerialPort, buffer);
             return true;
         } catch (Exception e) {

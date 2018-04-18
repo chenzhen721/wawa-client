@@ -6,6 +6,8 @@ import com.wawa.common.component.Result;
 import com.wawa.model.C2Config;
 import com.wawa.model.ComRequest;
 import com.wawa.model.ComResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -19,8 +21,9 @@ import java.util.concurrent.TimeoutException;
  * 查询机器状态接口: FF55C00000000000000000
  */
 public class C2Command implements Command {
+    private final Logger logger = LoggerFactory.getLogger(C2Command.class);
     private static final int action_timeout = 500;
-    private static final long result_timeout = 2000;
+    private static final long result_timeout = 20000;
     public static final String command = "C2";
 
     private Receiver receiver;
@@ -86,7 +89,7 @@ public class C2Command implements Command {
             System.out.println("正常收到结果：" + comResponse.getResult());
             return comResponse;
         } catch (InterruptedException|ExecutionException |TimeoutException e) {
-            e.printStackTrace();
+            logger.info("waitForResult error.", e);
             future.cancel(true);
         }
         //超时

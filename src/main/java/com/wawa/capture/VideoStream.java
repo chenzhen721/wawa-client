@@ -30,7 +30,8 @@ public class VideoStream {
 
 
     public VideoStream(String cameraName) {
-        this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" " +
+        this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" -codec:v libx264 -g 25 -tune zerolatency -profile:v baseline -s 640x480 -pix_fmt yuv420p -b:v 500k -r 10 -bf 0 -ac 1 -b:a 1024k -f rawvideo -";
+        /*this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" " +
                 "-r 20 " +
                 "-framerate 20 " +
 //                "-s 320x240 " +
@@ -54,7 +55,7 @@ public class VideoStream {
                 "-sc_threshold 0 " + //不知道什么用
                 "-vf crop=iw:ih " + //视频裁剪
 //                "-nr  600 " +
-                "-f rawvideo -";
+                "-f rawvideo -";*/
         /*String url = "ws://videocdn.youfubao.vip/user/15127257090664216030/53511145/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MjA4NzEzNjIuNTUsImV4cCI6MTUyOTUxMTM2Mi41NSwiaXNzIjoidXBheSIsInVzZXJfaWQiOiIxNTEyNzI1NzA5MDY2NDIxNjAzMCJ9.bJT30fXvMBGJfOLI3HJJF498MyZLwo_DiHJsaHDwqoI";
         */
     }
@@ -103,7 +104,7 @@ public class VideoStream {
             String line;
             BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
             while ((line = reader.readLine()) != null) {
-                //logger.info(line);
+                logger.info(line);
                 //eventBus.post("error");
             }
             return null;
