@@ -8,11 +8,11 @@ public class C2Config {
     /**
      * 加载天车前后运行时间，数值范围 -100~100。（单位x100ms，100等于10秒）
      */
-    private int FBtime;
+    private int fbtime;
     /**
      * 加载天车左右运行时间，数值范围 -100~100。（单位x100ms，100等于10秒）
      */
-    private int LRtime;
+    private int lrtime;
     /**
      * 0为无效，数值不为0表示要下爪
      */
@@ -25,8 +25,8 @@ public class C2Config {
     public byte[] toBytes() {
         byte[] bytes = new byte[8];
         bytes[0] = -62;
-        bytes[1] = (byte) (checkRange(FBtime, -100, 100) & 0xFF);
-        bytes[2] = (byte) (checkRange(LRtime, -100, 100) & 0xFF);
+        bytes[1] = (byte) (checkRange(fbtime, -100, 100) & 0xFF);
+        bytes[2] = (byte) (checkRange(lrtime, -100, 100) & 0xFF);
         bytes[3] = (byte) (checkRange(doll, 0, 100) & 0xFF);
         bytes[4] = 0;
         bytes[5] = 0;
@@ -38,20 +38,20 @@ public class C2Config {
         return num < min ? min : num > max ? max : num;
     }
 
-    public int getFBtime() {
-        return FBtime;
+    public int getFbtime() {
+        return fbtime;
     }
 
-    public void setFBtime(int FBtime) {
-        this.FBtime = FBtime;
+    public void setFbtime(int fbtime) {
+        this.fbtime = fbtime;
     }
 
-    public int getLRtime() {
-        return LRtime;
+    public int getLrtime() {
+        return lrtime;
     }
 
-    public void setLRtime(int LRtime) {
-        this.LRtime = LRtime;
+    public void setLrtime(int lrtime) {
+        this.lrtime = lrtime;
     }
 
     public int getDoll() {

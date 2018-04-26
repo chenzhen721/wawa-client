@@ -170,9 +170,9 @@ public class MainGui {
             Runnable runnable = () -> {
                 if (e.getSource() == jButton) { //开始
                     //生成c1config
-                    c1Config.setFBspeed(Integer.valueOf(jTextField.getText()));
-                    c1Config.setLRspeed(Integer.valueOf(jTextField2.getText()));
-                    c1Config.setUDspeed(Integer.valueOf(jTextField4.getText()));
+                    c1Config.setFbspeed(Integer.valueOf(jTextField.getText()));
+                    c1Config.setLrspeed(Integer.valueOf(jTextField2.getText()));
+                    c1Config.setUdspeed(Integer.valueOf(jTextField4.getText()));
                     c1Config.setLightWeight(Integer.valueOf(jTextField5.getText()));
                     c1Config.setHeavyWeight(Integer.valueOf(jTextField6.getText()));
                     c1Config.setHeavyToLight(Integer.valueOf(jTextField7.getText()));
@@ -192,7 +192,7 @@ public class MainGui {
                 if (e.getSource() == jButton1) { //上
                     System.out.println("操作：" + jButton1.getText());
                     C2Config c2Config = initC2Config();
-                    c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
+                    c2Config.setFbtime(Integer.valueOf(jTextField1.getText()));
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, 0);
                     LogScroll.log(this.getClass(), jButton1.getText() + ":" + comResponse.getCode() + "");
                     return;
@@ -200,7 +200,7 @@ public class MainGui {
                 if (e.getSource() == jButton2) { //下
                     System.out.println("操作：" + jButton2.getText());
                     C2Config c2Config = initC2Config();
-                    c2Config.setFBtime(Integer.valueOf(jTextField1.getText()));
+                    c2Config.setFbtime(Integer.valueOf(jTextField1.getText()));
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, 1);
                     LogScroll.log(this.getClass(), jButton2.getText() + ":" + comResponse.getCode() + "");
                     return;
@@ -208,7 +208,7 @@ public class MainGui {
                 if (e.getSource() == jButton3) { //左
                     System.out.println("操作：" + jButton3.getText());
                     C2Config c2Config = initC2Config();
-                    c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
+                    c2Config.setLrtime(Integer.valueOf(jTextField3.getText()));
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, 2);
                     LogScroll.log(this.getClass(), jButton3.getText() + ":" + comResponse.getCode() + "");
                     return;
@@ -216,7 +216,7 @@ public class MainGui {
                 if (e.getSource() == jButton4) { //右
                     System.out.println("操作：" + jButton4.getText());
                     C2Config c2Config = initC2Config();
-                    c2Config.setLRtime(Integer.valueOf(jTextField3.getText()));
+                    c2Config.setLrtime(Integer.valueOf(jTextField3.getText()));
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, 3);
                     LogScroll.log(this.getClass(), jButton4.getText() + ":" + comResponse.getCode() + "");
                     return;
@@ -292,8 +292,8 @@ public class MainGui {
 
     private static C2Config initC2Config() {
         C2Config c2Config = new C2Config();
-        c2Config.setFBtime(0);
-        c2Config.setLRtime(0);
+        c2Config.setFbtime(0);
+        c2Config.setLrtime(0);
         c2Config.setDoll(0); //默认为方向移动
         c2Config.setKeepTillTop(0); //todo 暂时不知道什么用
         return c2Config;

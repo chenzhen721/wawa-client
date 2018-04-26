@@ -17,6 +17,10 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -256,6 +260,7 @@ public class VideoServer {
             logger.error("error.", e);
         }
 
+        int n = 0;
         public void sendStream() {
             try {
                 VideoStream videoStream = videoMap.get(streamName);
@@ -265,6 +270,17 @@ public class VideoServer {
                         if (!this.isClosed()) {
                             this.send(tmp);
                         }
+                        /*if (n++ < 100) {
+                            return;
+                        }
+                        File file = new File("D:/replay.mp4");
+                        if (!file.exists()) {
+                            System.out.println(file.createNewFile());
+                        }
+                        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file, true));
+                        outputStream.write(tmp, 0, tmp.length);
+                        outputStream.flush();
+                        outputStream.close();*/
                     }
                 }
             } catch (Exception e) {

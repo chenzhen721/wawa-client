@@ -127,10 +127,10 @@ public class MachineInvoker {
                 case 0:
                     break;
                 case 1:
-                    c2Config.setFBtime(0 - c2Config.getFBtime());
+                    c2Config.setFbtime(0 - c2Config.getFbtime());
                     break;
                 case 2:
-                    c2Config.setLRtime(0 - c2Config.getLRtime());
+                    c2Config.setLrtime(0 - c2Config.getLrtime());
                     break;
                 case 3:
                     break;
@@ -169,16 +169,16 @@ public class MachineInvoker {
     public ComResponse releaseButton(C2Config c2Config, int direction) {
         switch (direction) {
             case 4:
-                c2Config.setFBtime(0);
+                c2Config.setFbtime(0);
                 break;
             case 5:
-                c2Config.setFBtime(0);
+                c2Config.setFbtime(0);
                 break;
             case 6:
-                c2Config.setLRtime(0);
+                c2Config.setFbtime(0);
                 break;
             case 7:
-                c2Config.setLRtime(0);
+                c2Config.setFbtime(0);
                 break;
         }
         return c2Command.execute(c2Command.create(c2Config));

@@ -7,15 +7,15 @@ public class C1Config {
     /**
      * 设置天车前后速度，数值范围0~100%
      */
-    private int FBspeed;
+    private int fbspeed;
     /**
      * 设置天车左右速度，数值范围0~100%
      */
-    private int LRspeed;
+    private int lrspeed;
     /**
      * 设置天车上下速度，数值范围0~100%
      */
-    private int UDspeed;
+    private int udspeed;
     /**
      * 弱爪力，数值范围0~100%
      */
@@ -40,13 +40,13 @@ public class C1Config {
     public byte[] toBytes() {
         byte[] bytes = new byte[9];
         bytes[0] = -63;
-        bytes[1] = (byte) (checkRange(FBspeed, 0, 100) & 0xFF);
-        bytes[2] = (byte) (checkRange(LRspeed, 0, 100) & 0xFF);
-        bytes[3] = (byte) (checkRange(UDspeed, 0, 100) & 0xFF);
-        bytes[4] = (byte) (checkRange(lightWeight, 0, 100) & 0xFF);
-        bytes[5] = (byte) (checkRange(heavyWeight, 0, 100) & 0xFF);
-        bytes[6] = (byte) (checkRange(heavyToLight, 0, 255) & 0xFF);
-        bytes[7] = (byte) (checkRange(playtime, 0, 100) & 0xFF);
+        bytes[1] = (byte) (checkRange(fbspeed, 1, 100) & 0xFF);
+        bytes[2] = (byte) (checkRange(lrspeed, 1, 100) & 0xFF);
+        bytes[3] = (byte) (checkRange(udspeed, 1, 100) & 0xFF);
+        bytes[4] = (byte) (checkRange(lightWeight, 1, 100) & 0xFF);
+        bytes[5] = (byte) (checkRange(heavyWeight, 1, 100) & 0xFF);
+        bytes[6] = (byte) (checkRange(heavyToLight, 1, 255) & 0xFF);
+        bytes[7] = (byte) (checkRange(playtime, 5, 90) & 0xFF);
         bytes[8] = (byte) (checkRange(exitDirection, 0, 1) & 0xFF);
         return bytes;
     }
@@ -55,28 +55,28 @@ public class C1Config {
         return num < min ? min : num > max ? max : num;
     }
 
-    public int getFBspeed() {
-        return FBspeed;
+    public int getFbspeed() {
+        return fbspeed;
     }
 
-    public void setFBspeed(int FBspeed) {
-        this.FBspeed = FBspeed;
+    public void setFbspeed(int fbspeed) {
+        this.fbspeed = fbspeed;
     }
 
-    public int getLRspeed() {
-        return LRspeed;
+    public int getLrspeed() {
+        return lrspeed;
     }
 
-    public void setLRspeed(int LRspeed) {
-        this.LRspeed = LRspeed;
+    public void setLrspeed(int lrspeed) {
+        this.lrspeed = lrspeed;
     }
 
-    public int getUDspeed() {
-        return UDspeed;
+    public int getUdspeed() {
+        return udspeed;
     }
 
-    public void setUDspeed(int UDspeed) {
-        this.UDspeed = UDspeed;
+    public void setUdspeed(int udspeed) {
+        this.udspeed = udspeed;
     }
 
     public int getLightWeight() {

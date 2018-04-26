@@ -220,18 +220,18 @@ public class SocketServer {
                     resp.setCode(0);
                     //初始化c1config
                     if (data == null || !data.containsKey("direction") ||
-                            (!data.containsKey("FBtime") && !data.containsKey("LRtime") && !data.containsKey("doll"))) {
+                            (!data.containsKey("fbtime") && !data.containsKey("lrtime") && !data.containsKey("doll"))) {
                         if (needResponse)
                         this.send(JSONUtil.beanToJson(resp));
                         return;
                     }
                     int direction = (int) data.get("direction");
                     C2Config c2Config = new C2Config();
-                    if (data.containsKey("FBtime")) {
-                        c2Config.setFBtime((int)data.get("FBtime"));
+                    if (data.containsKey("fbtime")) {
+                        c2Config.setFbtime((int)data.get("fbtime"));
                     }
-                    if (data.containsKey("LRtime")) {
-                        c2Config.setFBtime((int)data.get("LRtime"));
+                    if (data.containsKey("lrtime")) {
+                        c2Config.setFbtime((int)data.get("lrtime"));
                     }
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, direction);
                     //处理回调结果
