@@ -231,7 +231,7 @@ public class SocketServer {
                         c2Config.setFbtime((int)data.get("fbtime"));
                     }
                     if (data.containsKey("lrtime")) {
-                        c2Config.setFbtime((int)data.get("lrtime"));
+                        c2Config.setLrtime((int)data.get("lrtime"));
                     }
                     ComResponse comResponse = machineInvoker.pressButton(c2Config, direction);
                     //处理回调结果

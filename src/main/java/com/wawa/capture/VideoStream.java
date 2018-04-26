@@ -104,7 +104,7 @@ public class VideoStream {
             String line;
             BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
             while ((line = reader.readLine()) != null) {
-                logger.info(line);
+                //logger.info(line);
                 //eventBus.post("error");
             }
             return null;
