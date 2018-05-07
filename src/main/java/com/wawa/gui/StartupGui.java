@@ -362,8 +362,8 @@ public class StartupGui extends JFrame {
             if (result.containsKey("server_uri")) {
                 prop.setProperty("server.uri", (String) result.get("server_uri"));
             }
-            if (result.containsKey("stream_uri")) {
-                prop.setProperty("stream.uri", (String) result.get("stream_uri"));
+            if (result.containsKey("push_uri")) {
+                prop.setProperty("stream.uri", (String) result.get("push_uri"));
             }
             if (result.containsKey("url")) {
                 prop.setProperty("device.url", (String) result.get("url"));

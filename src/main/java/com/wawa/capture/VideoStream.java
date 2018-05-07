@@ -30,34 +30,18 @@ public class VideoStream {
 
 
     public VideoStream(String cameraName) {
-        this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" -codec:v libx264 -g 25 -tune zerolatency -profile:v baseline -s 640x480 -pix_fmt yuv420p -b:v 500k -r 10 -bf 0 -ac 1 -b:a 1024k -f rawvideo -";
-        /*this.exec = "ffmpeg -f dshow -i video=\"" + cameraName + "\" " +
-                "-r 20 " +
-                "-framerate 20 " +
-//                "-s 320x240 " +
-                "-video_size 640x480 " +
-                "-pix_fmt yuv420p " +
-                "-c:v libx264 " +
-                "-b:v 640k " +
-                "-bufsize 4500k " +
-//                "-crf 25 " +
-                "-rtbufsize 1k " +
-//                "-ps 80000 " +
-                "-profile:v baseline " + //
-                "-tune zerolatency " + //零延迟
-                "-i_qfactor 0.71 " + //默认1.4，越高I帧质量越高
-//                "-i_qoffset 0.1 " +
-//                "-keyint_min 16 " +
-                "-weightp 4 " +
-                "-g 7 " +
-                "-bf 0 " +
-                "-b_strategy 0 " + //b帧数量
-                "-sc_threshold 0 " + //不知道什么用
-                "-vf crop=iw:ih " + //视频裁剪
-//                "-nr  600 " +
-                "-f rawvideo -";*/
-        /*String url = "ws://videocdn.youfubao.vip/user/15127257090664216030/53511145/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MjA4NzEzNjIuNTUsImV4cCI6MTUyOTUxMTM2Mi41NSwiaXNzIjoidXBheSIsInVzZXJfaWQiOiIxNTEyNzI1NzA5MDY2NDIxNjAzMCJ9.bJT30fXvMBGJfOLI3HJJF498MyZLwo_DiHJsaHDwqoI";
-        */
+        this.exec = "ffmpeg -f" +
+                " dshow -i video=\"" + cameraName + "\"" +
+                " -codec:v libx264" +
+                " -g 16" +
+                " -tune zerolatency" +
+                " -profile:v baseline" +
+                " -s 640x480" +
+                " -pix_fmt yuv420p" +
+                " -b:v 360k" +
+                " -r 20" +  //帧速率
+                " -bf 0" +
+                " -f rawvideo -";
     }
 
     public void start() {
@@ -104,7 +88,7 @@ public class VideoStream {
             String line;
             BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
             while ((line = reader.readLine()) != null) {
-                //logger.info(line);
+                //todo 隔一分钟记录一次就OK logger.info(line);
                 //eventBus.post("error");
             }
             return null;

@@ -54,8 +54,9 @@ public class C2Command implements Command {
                 return comResponse;
             }
             comResponse = waitForResult();
+        } else {
+            comResponse.setCode(Result.fail);
         }
-        comResponse.setCode(Result.fail);
         return comResponse;
     }
 

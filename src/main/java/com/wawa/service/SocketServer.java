@@ -17,6 +17,7 @@ import com.wawa.model.EventEnum;
 import com.wawa.model.EventSetup;
 import com.wawa.model.ActionResult;
 import com.wawa.model.Response;
+import org.apache.commons.lang.StringUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -40,7 +41,6 @@ public class SocketServer {
     private SocketClient socketClient;
     private Timer timer = new Timer();
     private TimerTask pingTimerTask;
-    //来个事件监听，断线重试
 
     public void close() {
         socketClient.close();
@@ -237,17 +237,34 @@ public class SocketServer {
                     //处理回调结果
                     logger.info("operate:" + s + ", result:" + JSONUtil.beanToJson(comResponse));
                     resp.setCode(1);
-                    actionResult.setLog_id(resultTimer.getLogId());
+                    if (8 == direction) {
+                        String log_id = (String) message.get("_id");
+                        Boolean auto = false;
+                        if (data.containsKey("auto")) {
+                            auto = (Boolean) data.get("auto");
+                        }
+                        if (auto && resultTimer == null) {
+                            //已经发送过，取消
+                            return;
+                        }
+                        if (auto && !StringUtils.isNotBlank(resultTimer.getLogId())) {
+                            log_id = resultTimer.getLogId();
+                        }
+                        actionResult.setLog_id(log_id);
+                        resetTimer();
+                    }
                     if (comResponse == null || !Result.success.equals(comResponse.getCode())) {
                         actionResult.setResult(Boolean.FALSE.toString());
                     } else {
-                        actionResult.setResult(comResponse.getResult().toString());
+                        String result = Boolean.TRUE.toString();
+                        if (c2Config.getDoll() == 1) {
+                            result = comResponse.getResult().toString();
+                        }
+                        actionResult.setResult(result);
                     }
                     if (needResponse) {
                         this.send(JSONUtil.beanToJson(resp));
-                    }
-                    if (8 == direction) {
-                        resetTimer();
+                        //todo 如果刚好结果回调不对，那就发http通知游戏结果
                     }
                     return;
                 }
@@ -309,8 +326,11 @@ public class SocketServer {
                 req.put("action", ActionTypeEnum.操控指令.getId());
                 Map<String, Object> op = new HashMap<>();
                 req.put("data", op);
+                req.put("_id", this.logId);
+                req.put("ts", System.currentTimeMillis());
                 op.put("doll", 1);
                 op.put("direction", 8);
+                op.put("auto", true);
                 socketClient.onMessage(JSONUtil.beanToJson(req));
             } catch (Exception e) {
                 logger.error("auto get result by timeout.", e);
